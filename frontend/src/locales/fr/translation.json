@@ -1,0 +1,415 @@
+{
+  "dashboard": "Tableau de bord",
+  "settings": "Paramètres",
+    "sidebar.dashboard": "Tableau de bord",
+    "sidebar.documents": "Documents",
+    "sidebar.classes": "Classes",
+    "sidebar.messages": "Messages",
+    "sidebar.calendar": "Calendrier",
+    "sidebar.gallery": "Galerie",
+    "sidebar.users": "Utilisateurs",
+    "sidebar.comments": "Commentaires",
+    "sidebar.articles": "Articles",
+    "sidebar.articlesList": "Liste des articles",
+    "sidebar.addArticle": "Ajouter un article",
+    "sidebar.settings": "Paramètres",
+    "sidebar.help": "Aide",
+  "language": "Langue",
+  "french": "Français",
+  "arabic": "Arabe",
+  "welcome": "Bienvenue sur EduShare !",
+  "logout": "Déconnexion",
+  "dashboard_summary": "Synthèse de votre activité sur la plateforme.",
+  "my_documents": "Mes documents",
+  "new_resource": "Nouvelle ressource",
+  "stats_documents": "Documents",
+  "stats_classes": "Classes",
+  "stats_shared": "Documents partagés",
+  "stats_messages": "Messages",
+  "recent_documents": "Documents récents",
+  "view_all": "Voir tout",
+  "no_recent_documents": "Aucun document récent. Commencez par uploader un document pour le voir apparaître ici.",
+  "ago": "il y a",
+  "add_document": "Ajouter un document",
+  "upcoming_classes": "Prochains cours",
+  "no_upcoming_classes": "Aucune classe à venir. Créez votre première classe pour voir les prochains cours ici.",
+  "students": "élèves",
+  "view_schedule": "Voir l'emploi du temps",
+  "action_upload": "Uploader",
+  "action_upload_desc": "Ajouter un document",
+  "action_create_class": "Créer une classe",
+  "action_create_class_desc": "Nouvelle classe",
+  "action_invite": "Inviter",
+  "action_invite_desc": "Ajouter des membres",
+  "action_stats": "Statistiques",
+  "action_stats_desc": "Voir les rapports",
+  "recent_articles": "Articles récents",
+  "published_on": "Publié le",
+  "time_today": "Aujourd'hui",
+  "role_teacher": "Enseignant",
+  "home.hero_badge": "Plateforme éducative nouvelle génération",
+  "home.hero_title": "Apprendre ensemble",
+  "home.hero_desc": "Découvrez une nouvelle façon d'apprendre avec des cours de qualité, des classes virtuelles et une communauté d'apprenants passionnés.",
+  "home.why_choose": "Pourquoi choisir EduShare ?",
+  "home.why_choose_desc": "Une plateforme complète conçue pour faciliter l'apprentissage et le partage de connaissances.",
+  "home.popular_articles": "Articles populaires",
+  "home.popular_articles_desc": "Découvrez nos derniers articles rédigés par des experts",
+  "articles.title": "Articles & ressources",
+  "articles.desc": "Découvrez des retours d'expérience, des bonnes pratiques et des ressources autour de la collaboration pédagogique et du numérique éducatif.",
+  "article.comments_title": "Commentaires",
+  "article.add_comment": "Ajouter un commentaire",
+  "article.name": "Nom",
+  "article.email": "Email (optionnel)",
+  "article.comment": "Commentaire",
+  "article.submit": "Envoyer",
+  "article.comments_disabled": "Les commentaires sont désactivés pour le moment",
+  "article.comments_required": "Nom et commentaire requis",
+  "article.comment_submitted": "Commentaire soumis ! Il sera publié après modération."
+  ,
+  "documents.title": "Mes Documents",
+  "documents.desc": "Gérez et partagez vos documents",
+  "documents.upload": "Uploader",
+  "documents.upload_success": "Document uploadé avec succès !",
+  "documents.upload_error": "Erreur lors de l'upload",
+  "documents.load_error": "Erreur lors du chargement des documents",
+  "documents.loading": "Chargement de vos documents...",
+  "documents.empty.title": "Aucun document pour le moment",
+  "documents.empty.desc": "Uploadez votre premier document pour le partager avec vos classes et vos collègues.",
+  "documents.upload_document": "Uploader un document",
+  "documents.filter.all": "Tous",
+  "documents.filter.pdf": "PDF",
+  "documents.filter.docx": "DOCX",
+  "documents.filter.images": "Images",
+  "documents.shared": "Partagé",
+  "documents.items_label": "document(s)",
+  "documents.upload_modal_title": "Uploader un document",
+  "documents.upload_drop": "Glissez-déposez ou cliquez",
+  "documents.upload_formats": "PDF, DOCX, PPTX, Images (max 50MB)",
+  "documents.uploading": "Upload en cours...",
+  "documents.deleted": "Document supprimé",
+  "commentsManagement": {
+    "title": "Gestion des commentaires",
+    "desc": "Gérez tous les commentaires d'articles",
+    "load_error": "Erreur lors du chargement des commentaires",
+    "loading": "Chargement...",
+    "empty": "Aucun commentaire trouvé",
+    "confirm_delete": "Supprimer définitivement ce commentaire ?",
+    "approved_success": "Commentaire approuvé",
+    "rejected_success": "Commentaire rejeté",
+    "deleted_success": "Commentaire supprimé",
+    "action_error": "Erreur lors de l'opération",
+    "search_placeholder": "Rechercher par auteur ou contenu...",
+    "stats": {
+      "total": "Total",
+      "pending": "En attente",
+      "approved": "Approuvés",
+      "rejected": "Rejetés"
+    },
+    "tabs": {
+      "all": "Tous",
+      "pending": "En attente",
+      "approved": "Approuvés",
+      "rejected": "Rejetés"
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté"
+    },
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "delete": "Supprimer"
+    },
+    "pagination": {
+      "prev": "Précédent",
+      "next": "Suivant",
+      "page": "Page"
+    }
+  }
+  ,
+  "usersManagement": {
+    "default_message_title": "Message de l'administration",
+    "saving": "Enregistrement des modifications...",
+    "table": {
+      "user": "Utilisateur",
+      "role": "Rôle",
+      "status": "Statut",
+      "created_at": "Créé le",
+      "last_login": "Dernière connexion",
+      "activity": "Activité",
+      "actions": "Actions"
+    },
+    "loading": "Chargement des utilisateurs...",
+    "empty": "Aucun utilisateur trouvé.",
+    "status": {
+      "active": "Actif",
+      "inactive": "Désactivé",
+      "verified": "Vérifié",
+      "to_approve": "À approuver"
+    },
+    "activity": {
+      "documents": "documents",
+      "classes": "classes"
+    },
+    "actions": {
+      "send_message": "Envoyer un message",
+      "deactivate": "Désactiver",
+      "activate": "Activer",
+      "approve": "Approuver",
+      "delete": "Supprimer",
+      "cancel": "Annuler",
+      "send": "Envoyer"
+    },
+    "pagination": {
+      "page": "Page",
+      "prev": "Précédent",
+      "next": "Suivant"
+    },
+    "modal": {
+      "title": "Envoyer un message",
+      "to": "À",
+      "title_label": "Titre",
+      "body_label": "Message",
+      "body_placeholder": "Écrivez le message à envoyer à cet utilisateur"
+    }
+  }
+  ,
+  "messages": {
+    "title": "Messages de classe",
+    "select_class_prompt": "Sélectionnez une classe pour voir les messages.",
+    "loading_classes": "Chargement des classes...",
+    "no_classes": "Aucune classe pour le moment. Créez ou rejoignez une classe pour commencer à échanger.",
+    "no_class_selected": "Aucune classe sélectionnée",
+    "choose_left": "Choisissez une classe à gauche pour voir les messages.",
+    "loading_messages": "Chargement des messages...",
+    "no_messages": "Aucun message pour le moment. Lancez la conversation avec votre classe.",
+    "placeholder_write": "Écrire un message pour la classe...",
+    "select_first": "Sélectionnez d'abord une classe"
+  }
+  ,
+  "classrooms": {
+    "title": "Mes classes",
+    "desc": "Gérez vos classes et collaborez avec vos camarades",
+    "join": "Rejoindre",
+    "create": "Créer une classe",
+    "loading": "Chargement de vos classes...",
+    "progress": "Progression",
+    "default_label": "Classe"
+  }
+    ,
+    "settings": {
+      "title": "Paramètres",
+      "desc": "Configurez les paramètres de votre plateforme",
+      "saving": "Enregistrement...",
+      "save_button": "Enregistrer les modifications",
+      "saved_success": "Paramètres enregistrés avec succès",
+      "save_error": "Erreur lors de l'enregistrement des paramètres",
+      "load_error": "Erreur lors du chargement des paramètres",
+      "loading": "Chargement des paramètres...",
+      "tabs": {
+        "general": "Général",
+        "users": "Utilisateurs",
+        "notifications": "Notifications",
+        "security": "Sécurité",
+        "appearance": "Apparence",
+        "storage": "Stockage"
+      },
+      "general": {
+        "site_name": "Nom du site",
+        "admin_email": "Email administrateur",
+        "site_description": "Description du site",
+        "site_url": "URL du site",
+        "language": "Langue",
+        "timezone": "Fuseau horaire",
+        "items_per_page": "Éléments par page",
+        "features_title": "Options de fonctionnalités",
+        "enable_registration": {
+          "title": "Activer les inscriptions",
+          "desc": "Permettre aux nouveaux utilisateurs de s'inscrire"
+        },
+        "enable_comments": {
+          "title": "Activer les commentaires",
+          "desc": "Permettre aux utilisateurs de commenter les articles"
+        },
+        "require_email_verification": {
+          "title": "Vérification email obligatoire",
+          "desc": "Exiger la vérification de l'email avant l'activation du compte"
+        }
+      },
+      "languages": {
+        "fr": "Français",
+        "ar": "العربية"
+      },
+      "users": {
+        "title": "Gestion des utilisateurs",
+        "desc": "Configurez les rôles, permissions et paramètres par défaut pour les nouveaux utilisateurs.",
+        "roles_active": "Rôles actifs",
+        "status_active": "Actif",
+        "permissions": "Permissions",
+        "active_users": "Utilisateurs actifs",
+        "available_roles": "Rôles disponibles",
+        "role_desc": {
+          "admin": "Accès complet à toutes les fonctionnalités",
+          "teacher": "Création de cours et gestion des étudiants",
+          "student": "Accès aux cours et ressources"
+        }
+      }
+      ,
+      "notifications": {
+        "title": "Notifications",
+        "email_notifications": {
+          "title": "Activer les notifications par email",
+          "desc": "Recevoir des emails pour les événements importants"
+        },
+        "new_user": {
+          "title": "Nouveaux utilisateurs",
+          "desc": "Être notifié lors d'une nouvelle inscription"
+        },
+        "new_comment": {
+          "title": "Nouveaux commentaires",
+          "desc": "Être notifié des commentaires en attente de modération"
+        },
+        "new_article": {
+          "title": "Nouveaux articles",
+          "desc": "Être notifié lors de la publication d'un article"
+        },
+        "system_alerts": {
+          "title": "Alertes système",
+          "desc": "Recevoir les alertes de sécurité et mises à jour"
+        },
+        "weekly_report": {
+          "title": "Rapport hebdomadaire",
+          "desc": "Recevoir un résumé hebdomadaire des activités"
+        }
+      },
+      "security": {
+        "title": "Sécurité",
+        "desc": "Configurez les règles de sécurité pour protéger votre plateforme",
+        "password_policy": "Politique de mot de passe",
+        "password_min_length": "Longueur minimale",
+        "session_timeout": "Timeout de session (minutes)",
+        "max_login_attempts": "Tentatives de connexion max",
+        "require_special_char": {
+          "title": "Caractère spécial obligatoire",
+          "desc": "Le mot de passe doit contenir au moins un caractère spécial (@, #, $, etc.)"
+        },
+        "require_number": {
+          "title": "Chiffre obligatoire",
+          "desc": "Le mot de passe doit contenir au moins un chiffre"
+        },
+        "require_uppercase": {
+          "title": "Majuscule obligatoire",
+          "desc": "Le mot de passe doit contenir au moins une lettre majuscule"
+        },
+        "enable_two_factor": {
+          "title": "Authentification à deux facteurs",
+          "desc": "Activer l'authentification à deux facteurs pour tous les administrateurs"
+        },
+        "ip_whitelist_label": "Liste blanche IP (une par ligne)",
+        "ip_whitelist_placeholder": "192.168.1.1\n10.0.0.0/24",
+        "ip_whitelist_help": "Laissez vide pour autoriser toutes les IP. Format: adresse IP ou CIDR"
+      },
+      "appearance": {
+        "theme": "Thème",
+        "theme_options": {
+          "light": "Clair",
+          "dark": "Sombre",
+          "auto": "Automatique (système)"
+        },
+        "primary_color": "Couleur primaire",
+        "accent_color": "Couleur d'accent",
+        "enable_animations": {
+          "title": "Activer les animations",
+          "desc": "Animations et transitions fluides dans l'interface"
+        },
+        "compact_mode": {
+          "title": "Mode compact",
+          "desc": "Réduire les espacements pour afficher plus de contenu"
+        },
+        "preview": "Aperçu",
+        "primary_button": "Bouton primaire",
+        "accent_button": "Bouton accent",
+        "example": "Exemple"
+      },
+      "storage": {
+        "provider": "Fournisseur de stockage",
+        "provider_options": {
+          "local": "Stockage local",
+          "s3": "Amazon S3",
+          "minio": "MinIO"
+        },
+        "max_file_size": "Taille max des fichiers (MB)",
+        "allowed_extensions": "Extensions autorisées (séparées par des virgules)",
+        "s3_title": "Configuration Amazon S3",
+        "s3_bucket": "Nom du bucket",
+        "s3_region": "Région",
+        "s3_access_key": "Clé d'accès",
+        "info_title": "Informations de stockage",
+        "info_used_space": "Espace utilisé:",
+        "info_file_count": "Nombre de fichiers:",
+        "info_last_upload": "Dernier upload:"
+      }
+    },
+    "articles": {
+      "gallery": {
+        "title": "Galerie des images",
+        "desc": "Gérez les images de couverture pour vos articles",
+        "total_images": "Images totales",
+        "used_space": "Espace utilisé",
+        "selected": "Sélectionnées",
+        "upload": "Uploader",
+        "uploading": "Upload...",
+        "load_error": "Erreur lors du chargement des images",
+        "images_only": "Seules les images sont acceptées",
+        "upload_success": "Image uploadée avec succès",
+        "upload_error": "Erreur lors de l'upload",
+        "confirm_delete": "Supprimer cette image ?",
+        "deleted": "Image supprimée",
+        "error": "Erreur",
+        "url_copied": "URL copiée",
+        "copy_failed": "Impossible de copier"
+      },
+      "list": {
+        "title": "Mes articles",
+        "access_notice": "Seuls les enseignants et administrateurs peuvent consulter cette page.",
+        "desc": "Retrouvez et gérez tous vos articles publiés ou en brouillon.",
+        "new_draft": "Nouveau brouillon",
+        "your_articles": "Vos articles",
+        "filter": {
+          "all": "Tous",
+          "drafts": "Brouillons",
+          "published": "Publiés",
+          "archived": "Archivés"
+        },
+        "search_placeholder": "Rechercher par titre ou contenu...",
+        "reset": "Réinitialiser",
+        "all_categories": "Toutes les catégories",
+        "all_tags": "Tous les tags",
+        "loading": "Chargement…",
+        "empty": "Aucun article pour le moment. Créez votre premier brouillon.",
+        "view": "Voir",
+        "edit": "Modifier",
+        "change_status": "Changer le statut",
+        "delete": "Supprimer",
+        "prev": "Précédent",
+        "next": "Suivant",
+        "load_error": "Erreur lors du chargement de vos articles",
+        "status_updated": "Statut mis à jour",
+        "status_update_error": "Erreur lors de la mise à jour du statut",
+        "confirm_delete": "Supprimer cet article ?",
+        "deleted": "Article supprimé",
+        "delete_error": "Erreur lors de la suppression de l'article"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "published": "Publié",
+        "archived": "Archivé"
+      },
+      "visibility": {
+        "public": "Public",
+        "logged_in": "Utilisateurs connectés",
+        "class_only": "Classe uniquement"
+      }
+    }
+}

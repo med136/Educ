@@ -1,0 +1,444 @@
+{
+  "dashboard": "لوحة التحكم",
+  "settings": "الإعدادات",
+    "sidebar.dashboard": "لوحة التحكم",
+    "sidebar.documents": "المستندات",
+    "sidebar.classes": "الفصول",
+    "sidebar.messages": "الرسائل",
+    "sidebar.calendar": "التقويم",
+    "sidebar.gallery": "معرض الصور",
+    "sidebar.users": "المستخدمون",
+    "sidebar.comments": "التعليقات",
+    "sidebar.articles": "المقالات",
+    "sidebar.articlesList": "قائمة المقالات",
+    "sidebar.addArticle": "إضافة مقال",
+    "sidebar.settings": "الإعدادات",
+    "sidebar.help": "مساعدة",
+  "language": "اللغة",
+  "french": "الفرنسية",
+  "arabic": "العربية",
+  "welcome": "مرحبًا بك في EduShare!",
+  "logout": "تسجيل الخروج",
+  "dashboard_summary": "ملخص نشاطك على المنصة.",
+  "my_documents": "مستنداتي",
+  "new_resource": "مورد جديد",
+  "stats_documents": "المستندات",
+  "stats_classes": "الفصول",
+  "stats_shared": "مستندات مشتركة",
+  "stats_messages": "الرسائل",
+  "recent_documents": "المستندات الأخيرة",
+  "view_all": "عرض الكل",
+  "no_recent_documents": "لا توجد مستندات حديثة. ابدأ برفع مستند ليظهر هنا.",
+  "ago": "منذ",
+  "add_document": "إضافة مستند",
+  "upcoming_classes": "الدروس القادمة",
+  "no_upcoming_classes": "لا توجد دروس قادمة. قم بإنشاء فصلك الأول لرؤية الدروس القادمة هنا.",
+  "students": "طلاب",
+  "view_schedule": "عرض الجدول الزمني",
+  "action_upload": "رفع",
+  "action_upload_desc": "إضافة مستند",
+  "action_create_class": "إنشاء فصل",
+  "action_create_class_desc": "فصل جديد",
+  "action_invite": "دعوة",
+  "action_invite_desc": "إضافة أعضاء",
+  "action_stats": "الإحصائيات",
+  "action_stats_desc": "عرض التقارير",
+  "recent_articles": "المقالات الأخيرة",
+  "published_on": "نشر في",
+  "time_today": "اليوم",
+  "role_teacher": "معلم",
+  "home.hero_badge": "منصة تعليمية من الجيل الجديد",
+  "home.hero_title": "نتعلم معًا",
+  "home.hero_desc": "اكتشف طريقة جديدة للتعلم مع دروس عالية الجودة، وصفوف افتراضية ومجتمع من المتعلمين المتحمسين.",
+  "home.why_choose": "لماذا تختار EduShare؟",
+  "home.why_choose_desc": "منصة متكاملة مصممة لتسهيل التعلم ومشاركة المعرفة.",
+  "home.popular_articles": "المقالات الشائعة",
+  "home.popular_articles_desc": "اكتشف أحدث مقالاتنا التي كتبها الخبراء",
+  "articles.title": "المقالات والموارد",
+  "articles.desc": "اكتشف تجارب وممارسات جيدة وموارد حول التعاون التربوي والتقنيات الرقمية في التعليم.",
+  "article.comments_title": "التعليقات",
+  "article.add_comment": "إضافة تعليق",
+  "article.name": "الاسم",
+  "article.email": "البريد الإلكتروني (اختياري)",
+  "article.comment": "التعليق",
+  "article.submit": "إرسال",
+  "article.comments_disabled": "تم تعطيل التعليقات حالياً",
+  "article.comments_required": "الاسم والتعليق مطلوبان",
+  "article.comment_submitted": "تم إرسال التعليق! سيتم نشره بعد المراجعة."
+  ,
+  "documents.title": "مستنداتي",
+  "documents.desc": "قم بإدارة ومشاركة مستنداتك",
+  "documents.upload": "رفع",
+  "documents.upload_success": "تم رفع المستند بنجاح!",
+  "documents.upload_error": "خطأ أثناء الرفع",
+  "documents.load_error": "خطأ أثناء تحميل المستندات",
+  "documents.loading": "جاري تحميل مستنداتك...",
+  "documents.empty.title": "لا توجد مستندات حتى الآن",
+  "documents.empty.desc": "ارفع مستندك الأول لمشاركته مع صفوفك وزملائك.",
+  "documents.upload_document": "رفع مستند",
+  "documents.filter.all": "الكل",
+  "documents.filter.pdf": "PDF",
+  "documents.filter.docx": "DOCX",
+  "documents.filter.images": "صور",
+  "documents.shared": "مشترك",
+  "documents.items_label": "مستند(ات)",
+  "documents.upload_modal_title": "رفع مستند",
+  "documents.upload_drop": "اسحب وأفلت أو اضغط هنا",
+  "documents.upload_formats": "PDF, DOCX, PPTX, صور (الحد الأقصى 50MB)",
+  "documents.uploading": "جاري الرفع...",
+  "documents.deleted": "تم حذف المستند",
+  "commentsManagement": {
+    "title": "إدارة التعليقات",
+    "desc": "إدارة جميع تعليقات المقالات",
+    "load_error": "خطأ أثناء تحميل التعليقات",
+    "loading": "جارٍ التحميل...",
+    "empty": "لم يتم العثور على تعليقات",
+    "confirm_delete": "حذف هذا التعليق نهائيًا؟",
+    "approved_success": "تمت الموافقة على التعليق",
+    "rejected_success": "تم رفض التعليق",
+    "deleted_success": "تم حذف التعليق",
+    "action_error": "خطأ أثناء العملية",
+    "search_placeholder": "ابحث بالكاتب أو المحتوى...",
+    "stats": {
+      "total": "الإجمالي",
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض"
+    },
+    "tabs": {
+      "all": "الكل",
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض"
+    },
+    "actions": {
+      "approve": "الموافقة",
+      "reject": "رفض",
+      "delete": "حذف"
+    },
+    "pagination": {
+      "prev": "السابق",
+      "next": "التالي",
+      "page": "صفحة"
+    }
+  }
+  ,
+  "usersManagement": {
+    "title": "المستخدمون",
+    "desc": "إدارة الحسابات (للمسؤولين فقط).",
+    "load_error": "خطأ أثناء تحميل المستخدمين",
+    "action_error": "خطأ أثناء العملية",
+    "updated_success": "تم تحديث المستخدم",
+    "deleted_success": "تم حذف المستخدم",
+    "confirm_delete": "حذف المستخدم {{name}}؟",
+    "refresh": "تحديث",
+    "users_label": "مستخدم(ين)",
+    "search_placeholder": "ابحث بالاسم أو البريد الإلكتروني",
+    "filters": {
+      "roles": {
+        "all": "جميع الأدوار",
+        "student": "طلاب",
+        "teacher": "معلمون",
+        "admin": "مشرفون"
+      },
+      "status": {
+        "all": "جميع الحالات",
+        "active": "نشط",
+        "inactive": "معطل"
+      }
+    },
+    "errors": {
+      "empty_message": "يرجى إدخال رسالة"
+    },
+    "message_sent": "تم إرسال الرسالة إلى المستخدم",
+    "default_message_title": "رسالة من الإدارة",
+    "saving": "جارٍ حفظ التغييرات...",
+    "table": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "status": "الحالة",
+      "created_at": "تاريخ الإنشاء",
+      "last_login": "آخر تسجيل دخول",
+      "activity": "النشاط",
+      "actions": "إجراءات"
+    },
+    "loading": "جارٍ تحميل المستخدمين...",
+    "empty": "لم يتم العثور على مستخدمين.",
+    "status": {
+      "active": "نشط",
+      "inactive": "معطل",
+      "verified": "تم التحقق",
+      "to_approve": "يحتاج موافقة"
+    },
+    "activity": {
+      "documents": "مستندات",
+      "classes": "فصول"
+    },
+    "actions": {
+      "send_message": "إرسال رسالة",
+      "deactivate": "تعطيل",
+      "activate": "تفعيل",
+      "approve": "الموافقة",
+      "delete": "حذف",
+      "cancel": "إلغاء",
+      "send": "إرسال"
+    },
+    "pagination": {
+      "page": "صفحة",
+      "prev": "السابق",
+      "next": "التالي"
+    },
+    "modal": {
+      "title": "إرسال رسالة",
+      "to": "إلى",
+      "title_label": "العنوان",
+      "body_label": "الرسالة",
+      "body_placeholder": "اكتب الرسالة لإرسالها إلى هذا المستخدم"
+    }
+  }
+  ,
+  "settings": {
+    "title": "الإعدادات",
+    "desc": "قم بتكوين إعدادات منصتك",
+    "saving": "جاري الحفظ...",
+    "save_button": "حفظ التغييرات",
+    "saved_success": "تم حفظ الإعدادات بنجاح",
+    "save_error": "حدث خطأ أثناء حفظ الإعدادات",
+    "load_error": "حدث خطأ أثناء تحميل الإعدادات",
+    "loading": "جاري تحميل الإعدادات...",
+    "tabs": {
+      "general": "عام",
+      "users": "المستخدمون",
+      "notifications": "الإشعارات",
+      "security": "الأمان",
+      "appearance": "المظهر",
+      "storage": "التخزين"
+    },
+    "general": {
+      "site_name": "اسم الموقع",
+      "admin_email": "البريد الإلكتروني للمسؤول",
+      "site_description": "وصف الموقع",
+      "site_url": "رابط الموقع",
+      "language": "اللغة",
+      "timezone": "المنطقة الزمنية",
+      "items_per_page": "العناصر في الصفحة",
+      "features_title": "خيارات الميزات",
+      "enable_registration": {
+        "title": "تمكين التسجيل",
+        "desc": "السماح للمستخدمين الجدد بالتسجيل"
+      },
+      "enable_comments": {
+        "title": "تمكين التعليقات",
+        "desc": "السماح للمستخدمين بالتعليق على المقالات"
+      },
+      "require_email_verification": {
+        "title": "التحقق من البريد الإلكتروني مطلوب",
+        "desc": "يتطلب التحقق من البريد الإلكتروني قبل تفعيل الحساب"
+      }
+    },
+    "languages": {
+      "fr": "Français",
+      "ar": "العربية"
+    },
+    "users": {
+      "title": "إدارة المستخدمين",
+      "desc": "قم بتكوين الأدوار والصلاحيات وإعدادات المستخدمين الافتراضية.",
+      "status_active": "نشط",
+      "roles_active": "الأدوار النشطة",
+      "permissions": "الصلاحيات",
+      "active_users": "المستخدمون النشطون",
+      "available_roles": "الأدوار المتاحة",
+      "role_desc": {
+        "admin": "وصول كامل إلى جميع الميزات",
+        "teacher": "إنشاء الدورات وإدارة الطلاب",
+        "student": "الوصول إلى الدورات والموارد"
+      }
+    }
+    ,
+    "notifications": {
+      "title": "الإشعارات",
+      "email_notifications": {
+        "title": "تمكين إشعارات البريد الإلكتروني",
+        "desc": "تلقي رسائل بريد إلكتروني للأحداث المهمة"
+      },
+      "new_user": {
+        "title": "مستخدمون جدد",
+        "desc": "تلقي إشعار عند تسجيل مستخدم جديد"
+      },
+      "new_comment": {
+        "title": "تعليقات جديدة",
+        "desc": "تلقي إشعار للتعليقات التي تنتظر المراجعة"
+      },
+      "new_article": {
+        "title": "مقالات جديدة",
+        "desc": "تلقي إشعار عند نشر مقالة"
+      },
+      "system_alerts": {
+        "title": "تنبيهات النظام",
+        "desc": "تلقي تنبيهات الأمان والتحديثات"
+      },
+      "weekly_report": {
+        "title": "تقرير أسبوعي",
+        "desc": "تلقي ملخص أسبوعي للنشاط"
+      }
+    },
+    "security": {
+      "title": "الأمان",
+      "desc": "قم بتكوين قواعد الأمان لحماية منصتك",
+      "password_policy": "سياسة كلمة المرور",
+      "password_min_length": "الحد الأدنى للطول",
+      "session_timeout": "مهلة الجلسة (بالدقائق)",
+      "max_login_attempts": "أقصى محاولات تسجيل دخول",
+      "require_special_char": {
+        "title": "حرف خاص مطلوب",
+        "desc": "يجب أن تحتوي كلمة المرور على حرف خاص واحد على الأقل (@, #, $، إلخ)"
+      },
+      "require_number": {
+        "title": "رقم مطلوب",
+        "desc": "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل"
+      },
+      "require_uppercase": {
+        "title": "حرف كبير مطلوب",
+        "desc": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل"
+      },
+      "enable_two_factor": {
+        "title": "المصادقة ذات العاملين",
+        "desc": "تفعيل المصادقة الثنائية لجميع المسؤولين"
+      },
+      "ip_whitelist_label": "قائمة عناوين IP المسموح بها (سطر لكل عنوان)",
+      "ip_whitelist_placeholder": "192.168.1.1\n10.0.0.0/24",
+      "ip_whitelist_help": "اتركه فارغًا للسماح بكل عناوين IP. الصيغة: عنوان IP أو CIDR"
+    },
+    "appearance": {
+      "theme": "المظهر",
+      "theme_options": {
+        "light": "فاتح",
+        "dark": "غامق",
+        "auto": "تلقائي (النظام)"
+      },
+      "primary_color": "اللون الأساسي",
+      "accent_color": "لون التمييز",
+      "enable_animations": {
+        "title": "تمكين الرسوم المتحركة",
+        "desc": "حركات وانتقالات سلسة في الواجهة"
+      },
+      "compact_mode": {
+        "title": "الوضع المضغوط",
+        "desc": "تقليل الفراغات لعرض المزيد من المحتوى"
+      },
+      "preview": "معاينة",
+      "primary_button": "زر أساسي",
+      "accent_button": "زر تمييز",
+      "example": "مثال"
+    },
+    "storage": {
+      "provider": "مزود التخزين",
+      "provider_options": {
+        "local": "تخزين محلي",
+        "s3": "Amazon S3",
+        "minio": "MinIO"
+      },
+      "max_file_size": "أقصى حجم ملف (MB)",
+      "allowed_extensions": "الامتدادات المسموح بها (مفصولة بفواصل)",
+      "s3_title": "إعداد Amazon S3",
+      "s3_bucket": "اسم الحاوية (bucket)",
+      "s3_region": "المنطقة",
+      "s3_access_key": "مفتاح الوصول",
+      "info_title": "معلومات التخزين",
+      "info_used_space": "المساحة المستخدمة:",
+      "info_file_count": "عدد الملفات:",
+      "info_last_upload": "آخر رفع:"
+    }
+  }
+
+  ,
+  "messages": {
+    "title": "رسائل الفصل",
+    "select_class_prompt": "اختر فصلًا لعرض الرسائل.",
+    "loading_classes": "جاري تحميل الفصول...",
+    "no_classes": "لا توجد فصول حتى الآن. قم بإنشاء فصل أو الانضمام لبدء المحادثة.",
+    "no_class_selected": "لم يتم اختيار فصل",
+    "choose_left": "اختر فصلًا من اليسار لعرض الرسائل.",
+    "loading_messages": "جاري تحميل الرسائل...",
+    "no_messages": "لا توجد رسائل حتى الآن. ابدأ المحادثة مع صفك.",
+    "placeholder_write": "اكتب رسالة للفصل...",
+    "select_first": "اختر فصلًا أولاً"
+  }
+
+    ,
+    "classrooms": {
+      "title": "فصولي",
+      "desc": "قم بإدارة فصولك والتعاون مع زملائك",
+      "join": "انضم",
+      "create": "إنشاء فصل",
+      "loading": "جاري تحميل فصولك...",
+      "progress": "التقدم",
+      "default_label": "فصل"
+    },
+    "articles": {
+      "gallery": {
+        "title": "معرض الصور",
+        "desc": "قم بإدارة صور الغلاف لمقالاتك",
+        "total_images": "إجمالي الصور",
+        "used_space": "المساحة المستخدمة",
+        "selected": "المحددة",
+        "upload": "رفع",
+        "uploading": "جاري الرفع...",
+        "load_error": "خطأ أثناء تحميل الصور",
+        "images_only": "الصور فقط مقبولة",
+        "upload_success": "تم رفع الصورة بنجاح",
+        "upload_error": "خطأ أثناء الرفع",
+        "confirm_delete": "حذف هذه الصورة؟",
+        "deleted": "تم حذف الصورة",
+        "error": "خطأ",
+        "url_copied": "تم نسخ الرابط",
+        "copy_failed": "تعذر النسخ"
+      },
+      "list": {
+        "title": "مقالاتي",
+        "access_notice": "فقط المعلمون والمسؤولون يمكنهم عرض هذه الصفحة.",
+        "desc": "اعثر على جميع مقالاتك المُنشأة وأدرها، سواء المنشورة أو المسودة.",
+        "new_draft": "مسودة جديدة",
+        "your_articles": "مقالاتك",
+        "filter": {
+          "all": "الكل",
+          "drafts": "مسودات",
+          "published": "منشور",
+          "archived": "مؤرشف"
+        },
+        "search_placeholder": "ابحث بعنوان أو محتوى...",
+        "reset": "إعادة تعيين",
+        "all_categories": "جميع الفئات",
+        "all_tags": "جميع الوسوم",
+        "loading": "جارٍ التحميل…",
+        "empty": "لا توجد مقالات الآن. أنشئ مسودتك الأولى.",
+        "view": "عرض",
+        "edit": "تعديل",
+        "change_status": "تغيير الحالة",
+        "delete": "حذف",
+        "prev": "السابق",
+        "next": "التالي",
+        "load_error": "خطأ أثناء تحميل مقالاتك",
+        "status_updated": "تم تحديث الحالة",
+        "status_update_error": "خطأ أثناء تحديث الحالة",
+        "confirm_delete": "حذف هذا المقال؟",
+        "deleted": "تم حذف المقال",
+        "delete_error": "خطأ أثناء حذف المقال"
+      },
+      "status": {
+        "draft": "مسودة",
+        "published": "منشور",
+        "archived": "مؤرشف"
+      },
+      "visibility": {
+        "public": "عام",
+        "logged_in": "المستخدمون المسجلون",
+        "class_only": "للفصل فقط"
+      }
+    }
+}

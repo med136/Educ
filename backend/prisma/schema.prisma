@@ -1,0 +1,406 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+  PARENT
+}
+
+enum DocumentType {
+  PDF
+  DOCX
+  PPTX
+  IMAGE
+  VIDEO
+  OTHER
+}
+
+enum PermissionLevel {
+  VIEW
+  COMMENT
+  EDIT
+  OWNER
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ArticleVisibility {
+  PUBLIC
+  LOGGED_IN
+  CLASS_ONLY
+}
+
+enum MediaAssetType {
+  ARTICLE_THUMBNAIL
+}
+
+enum StorageProvider {
+  local
+  s3
+  minio
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AppSetting {
+  id        String   @id @default(uuid())
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id                String        @id @default(uuid())
+  email             String        @unique
+  username          String?       @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              UserRole
+  avatar            String?
+  isVerified        Boolean       @default(false)
+  isActive          Boolean       @default(true)
+  
+  // Relations
+  ownedDocuments    Document[]    @relation("DocumentOwner")
+  sharedDocuments   DocumentShare[]
+  classrooms        Classroom[]
+  createdClasses    Classroom[]   @relation("ClassroomCreator")
+  messages          Message[]
+  notifications     Notification[]
+  comments          Comment[]
+  sessions          Session[]
+  articles          Article[]     @relation("UserArticles")
+  mediaAssets       MediaAsset[]
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  lastLogin         DateTime?
+  
+  // Indexes
+  @@index([email])
+  @@index([role])
+}
+
+model MediaAsset {
+  id              String          @id @default(uuid())
+  type            MediaAssetType
+
+  url             String
+  storageKey      String
+  storageProvider StorageProvider @default(local)
+
+  mimeType        String
+  originalName    String?
+  size            Int
+
+  ownerId         String
+  owner           User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime        @default(now())
+
+  @@index([ownerId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Document {
+  id                String        @id @default(uuid())
+  title             String
+  description       String?
+  fileName          String
+  fileType          DocumentType
+  fileSize          Int           // en octets
+  fileUrl           String        @unique
+  thumbnailUrl      String?
+  
+  // Relations
+  ownerId           String
+  owner             User          @relation("DocumentOwner", fields: [ownerId], references: [id])
+  classroomId       String?
+  classroom         Classroom?    @relation(fields: [classroomId], references: [id])
+  shares            DocumentShare[]
+  comments          Comment[]
+  versions          DocumentVersion[]
+  
+  // Métadonnées
+  tags              String[]
+  isPublic          Boolean       @default(false)
+  downloadCount     Int           @default(0)
+  viewCount         Int           @default(0)
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+  
+  // Indexes
+  @@index([ownerId])
+  @@index([classroomId])
+  @@index([fileType])
+  @@index([createdAt])
+  @@index([title])
+}
+
+model DocumentShare {
+  id                String        @id @default(uuid())
+  
+  // Relations
+  documentId        String
+  document          Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Permissions
+  permission        PermissionLevel
+  
+  // Timestamps
+  sharedAt          DateTime      @default(now())
+  expiresAt         DateTime?
+  
+  @@unique([documentId, userId])
+  @@index([userId])
+  @@index([permission])
+}
+
+model DocumentVersion {
+  id                String        @id @default(uuid())
+  
+  // Relations
+  documentId        String
+  document          Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // Version info
+  versionNumber     Int
+  fileName          String
+  fileUrl           String
+  fileSize          Int
+  changes           String?
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  
+  @@unique([documentId, versionNumber])
+}
+
+model Classroom {
+  id                String        @id @default(uuid())
+  name              String
+  description       String?
+  code              String        @unique
+  subject           String
+  gradeLevel        String
+  
+  // Relations
+  creatorId         String
+  creator           User          @relation("ClassroomCreator", fields: [creatorId], references: [id])
+  students          User[]
+  documents         Document[]
+  messages          Message[]
+  articleLinks      ArticleClassroomLink[] @relation("ClassroomArticleClassroomLinks")
+  
+  // Configuration
+  isActive          Boolean       @default(true)
+  maxStudents       Int           @default(50)
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Indexes
+  @@index([creatorId])
+  @@index([code])
+  @@index([name])
+}
+
+model ArticleCategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+
+  articles    Article[]
+}
+
+model ArticleTag {
+  id     String           @id @default(uuid())
+  name   String
+  slug   String           @unique
+
+  articles ArticleTagLink[]
+}
+
+model Article {
+  id           String             @id @default(uuid())
+  title        String
+  slug         String             @unique
+  excerpt      String?
+  content      String
+  status       ArticleStatus      @default(DRAFT)
+  visibility   ArticleVisibility  @default(PUBLIC)
+  coverImage   String?
+  readingTime  Int?
+
+  authorId     String
+  author       User               @relation("UserArticles", fields: [authorId], references: [id])
+
+  categoryId   String?
+  category     ArticleCategory?   @relation(fields: [categoryId], references: [id])
+
+  tags         ArticleTagLink[]
+  classrooms   ArticleClassroomLink[] @relation("ArticleArticleClassroomLinks")
+  comments     ArticleComment[]
+
+  viewCount    Int                @default(0)
+
+  publishedAt  DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([visibility])
+  @@index([publishedAt])
+}
+
+model ArticleTagLink {
+  articleId String
+  tagId     String
+
+  article   Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       ArticleTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+}
+
+model ArticleClassroomLink {
+  articleId   String
+  classroomId String
+
+  article     Article   @relation("ArticleArticleClassroomLinks", fields: [articleId], references: [id], onDelete: Cascade)
+  classroom   Classroom @relation("ClassroomArticleClassroomLinks", fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, classroomId])
+}
+
+model ArticleComment {
+  id            String        @id @default(uuid())
+  content       String
+  authorName    String
+  authorEmail   String?
+  
+  status        CommentStatus @default(PENDING)
+  
+  articleId     String
+  article       Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  
+  moderatedById String?
+  moderatedAt   DateTime?
+  
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@index([articleId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Comment {
+  id                String        @id @default(uuid())
+  content           String
+  
+  // Relations
+  documentId        String
+  document          Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  parentId          String?
+  parent            Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies           Comment[]     @relation("CommentReplies")
+  
+  // Metadata
+  isEdited          Boolean       @default(false)
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([documentId])
+  @@index([userId])
+}
+
+model Message {
+  id                String        @id @default(uuid())
+  content           String
+  isEdited          Boolean       @default(false)
+  
+  // Relations
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  classroomId       String
+  classroom         Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([classroomId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id                String        @id @default(uuid())
+  title             String
+  message           String
+  type              String        // "document", "comment", "system", etc.
+  isRead            Boolean       @default(false)
+  data              Json?         // Données supplémentaires
+  
+  // Relations
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  readAt            DateTime?
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// Table de session (pour scaling futur)
+model Session {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token             String        @unique
+  userAgent         String?
+  ipAddress         String?
+  expiresAt         DateTime
+  
+  createdAt         DateTime      @default(now())
+  
+  @@index([userId])
+  @@index([expiresAt])
+}
