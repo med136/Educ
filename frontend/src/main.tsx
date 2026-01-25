@@ -24,12 +24,13 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <SettingsProvider>
+      <AppearanceApplier />
       <ThemeProvider>
         <Provider store={store}>
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
               <App />
-              <Toaster 
+              <Toaster
                 position="top-right"
                 toastOptions={{
                   duration: 4000,

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { useSettings } from './SettingsContext'
 
 export type Theme = 'light' | 'dark'
 
@@ -12,18 +13,32 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 const THEME_STORAGE_KEY = 'edushare-theme'
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { settings, refresh } = useSettings()
   const [theme, setTheme] = useState<Theme>('light')
 
-  useEffect(() => {
+  // Determine the effective theme based on settings
+  const getEffectiveTheme = (): Theme => {
+    const appearanceTheme = settings.appearance?.theme
+    if (appearanceTheme === 'light' || appearanceTheme === 'dark') {
+      return appearanceTheme
+    }
+    if (appearanceTheme === 'auto') {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      return prefersDark ? 'dark' : 'light'
+    }
+    // Fallback to stored preference or system preference
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
     if (stored === 'light' || stored === 'dark') {
-      setTheme(stored)
-      return
+      return stored
     }
-
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    setTheme(prefersDark ? 'dark' : 'light')
-  }, [])
+    return prefersDark ? 'dark' : 'light'
+  }
+
+  useEffect(() => {
+    const effectiveTheme = getEffectiveTheme()
+    setTheme(effectiveTheme)
+  }, [settings.appearance?.theme])
 
   useEffect(() => {
     const root = document.documentElement
@@ -35,8 +50,39 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     window.localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  const toggleTheme = async () => {
+    const currentTheme = settings.appearance?.theme
+    let newTheme: 'light' | 'dark' | 'auto'
+
+    if (currentTheme === 'auto') {
+      newTheme = 'light'
+    } else if (currentTheme === 'light') {
+      newTheme = 'dark'
+    } else {
+      newTheme = 'auto'
+    }
+
+    // Update settings via API
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appearance: {
+            ...settings.appearance,
+            theme: newTheme,
+          },
+        }),
+      })
+
+      if (response.ok) {
+        await refresh()
+      }
+    } catch (error) {
+      console.error('Failed to update theme setting:', error)
+    }
   }
 
   return (

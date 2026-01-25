@@ -15,8 +15,8 @@ html[dir="rtl"] body {
 
 @layer base {
   :root {
-    --primary: #2563eb;
-    --secondary: #7c3aed;
+    --primary: #3B82F6;
+    --accent: #9333EA;
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -28,6 +28,24 @@ html[dir="rtl"] body {
 
   .dark body {
     @apply bg-slate-950 text-slate-100;
+  }
+
+  /* Compact mode */
+  .compact-mode .card,
+  .compact-mode .btn-primary,
+  .compact-mode .btn-secondary,
+  .compact-mode .input-field {
+    @apply p-3;
+  }
+
+  .compact-mode .card {
+    @apply p-4;
+  }
+
+  /* No animations */
+  .no-animations * {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
   }
 
   /* Scrollbar personnalisée */
