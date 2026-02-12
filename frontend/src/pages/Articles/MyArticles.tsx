@@ -22,6 +22,7 @@ import {
   UserGroupIcon,
   CloudArrowUpIcon,
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 
 interface ClassroomOption {
   id: string
@@ -40,6 +41,34 @@ interface ArticleTagOption {
 
 type ArticleStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 type ArticleVisibility = 'PUBLIC' | 'LOGGED_IN' | 'CLASS_ONLY'
+
+type AxiosErrorLike = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
+type ArticleFullPayload = {
+  id: string
+  title?: string | null
+  slug?: string | null
+  excerpt?: string | null
+  content?: string | null
+  status?: ArticleStatus | string | null
+  visibility?: ArticleVisibility | string | null
+  categoryId?: string | null
+  coverImage?: string | null
+  classrooms?: Array<{
+    classroomId?: string | null
+    classroom?: { id?: string | null } | null
+  }> | null
+  tags?: Array<{
+    tagId?: string | null
+    tag?: { id?: string | null } | null
+  }> | null
+}
 
 interface ArticleForm {
   id?: string
@@ -69,11 +98,13 @@ const emptyForm: ArticleForm = {
 
 const MyArticles: React.FC = () => {
   const { user } = useAuth()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { slug: routeSlug } = useParams<{ slug: string }>()
   const [searchParams] = useSearchParams()
   const [saving, setSaving] = useState(false)
   const [autoSaving, setAutoSaving] = useState(false)
+  const [autoSaveFailed, setAutoSaveFailed] = useState(false)
   const [loadingCurrent, setLoadingCurrent] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [classrooms, setClassrooms] = useState<ClassroomOption[]>([])
@@ -90,10 +121,25 @@ const MyArticles: React.FC = () => {
   const [showCoverGallery, setShowCoverGallery] = useState(false)
   const [fullscreenEditor, setFullscreenEditor] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const coverFileInputRef = useRef<HTMLInputElement | null>(null)
+  const metaErrorToastShownRef = useRef(false)
+  const classroomErrorToastShownRef = useRef(false)
+  const autoSaveErrorToastShownRef = useRef(false)
 
   const presetClassroomId = searchParams.get('classroomId') || ''
   const skipNextLoadRef = useRef<string | null>(null)
   const canManage = user && (user.role === 'TEACHER' || user.role === 'ADMIN')
+
+  const isNonEmptyString = (value: unknown): value is string =>
+    typeof value === 'string' && value.trim().length > 0
+
+  const formatTime = (dateValue: Date) => {
+    try {
+      return new Intl.DateTimeFormat(i18n.language, { timeStyle: 'short' }).format(dateValue)
+    } catch {
+      return dateValue.toLocaleTimeString()
+    }
+  }
 
   // Quill modules avec toolbar enrichie
   const quillModules = useMemo(
@@ -117,10 +163,23 @@ const MyArticles: React.FC = () => {
   const fetchClassrooms = async () => {
     try {
       const response = await api.get('/classrooms')
-      const data = response.data?.data || []
-      setClassrooms(data.map((c: any) => ({ id: c.id, name: c.name })))
+      const data = response.data?.data
+      if (Array.isArray(data)) {
+        setClassrooms(
+          data
+            .map((item: unknown) => {
+              const candidate = item as Partial<ClassroomOption> | null
+              if (!candidate?.id || !candidate?.name) return null
+              return { id: String(candidate.id), name: String(candidate.name) }
+            })
+            .filter((c): c is ClassroomOption => Boolean(c))
+        )
+      }
     } catch {
-      // silencieux
+      if (!classroomErrorToastShownRef.current) {
+        classroomErrorToastShownRef.current = true
+        toast.error(t('articles.new.classrooms_load_error', 'Impossible de charger les classes'))
+      }
     }
   }
 
@@ -133,7 +192,10 @@ const MyArticles: React.FC = () => {
       setCategories(catRes.data?.data || [])
       setTags(tagRes.data?.data || [])
     } catch {
-      // silencieux
+      if (!metaErrorToastShownRef.current) {
+        metaErrorToastShownRef.current = true
+        toast.error(t('articles.new.meta_load_error', 'Impossible de charger les catégories et tags'))
+      }
     }
   }
 
@@ -176,18 +238,18 @@ const MyArticles: React.FC = () => {
       setLoadingCurrent(true)
       setActiveTab('edit')
       const response = await api.get(`/articles/${articleSlug}`)
-      const full = response.data?.data
+      const full = response.data?.data as ArticleFullPayload
 
       const existingClassroomIds =
         full?.classrooms && Array.isArray(full.classrooms)
           ? full.classrooms
-              .map((c: any) => c.classroomId ?? c.classroom?.id)
-              .filter(Boolean)
+              .map((c) => c.classroomId ?? c.classroom?.id)
+              .filter(isNonEmptyString)
           : []
 
       const existingTagIds =
         full?.tags && Array.isArray(full.tags)
-          ? full.tags.map((t: any) => t.tagId ?? t.tag?.id).filter(Boolean)
+          ? full.tags.map((tag) => tag.tagId ?? tag.tag?.id).filter(isNonEmptyString)
           : []
 
       setForm({
@@ -204,8 +266,9 @@ const MyArticles: React.FC = () => {
       })
       setSelectedTagIds(existingTagIds)
       setHasUnsavedChanges(false)
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Impossible de charger l'article")
+    } catch (error: unknown) {
+      const message = (error as AxiosErrorLike)?.response?.data?.message
+      toast.error(message || t('articles.new.load_error'))
     } finally {
       setLoadingCurrent(false)
     }
@@ -224,7 +287,7 @@ const MyArticles: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeSlug])
 
-  const buildDraftPayload = (): any => {
+  const buildDraftPayload = (): Record<string, unknown> => {
     const plainText = form.content
       .replace(/<[^>]*>/g, ' ')
       .replace(/&nbsp;/g, ' ')
@@ -232,7 +295,7 @@ const MyArticles: React.FC = () => {
     const words = plainText ? plainText.split(/\s+/).length : 0
     const estimatedReadingTime = Math.max(1, Math.round(words / 200))
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       title: form.title.trim(),
       slug: form.slug.trim() || undefined,
       excerpt: form.excerpt.trim() || undefined,
@@ -260,6 +323,7 @@ const MyArticles: React.FC = () => {
 
     try {
       setAutoSaving(true)
+      setAutoSaveFailed(false)
       const payload = buildDraftPayload()
 
       if (form.id) {
@@ -290,11 +354,18 @@ const MyArticles: React.FC = () => {
       setHasUnsavedChanges(false)
       setLastAutoSavedAt(new Date())
     } catch {
-      // Silencieux
+      setAutoSaveFailed(true)
+      if (!autoSaveErrorToastShownRef.current) {
+        autoSaveErrorToastShownRef.current = true
+        toast.error(t('articles.new.auto_save_failed', "Échec de l'auto‑sauvegarde"))
+      }
     } finally {
       setAutoSaving(false)
     }
   }
+
+  const classroomIdsKey = form.classroomIds.join(',')
+  const selectedTagIdsKey = selectedTagIds.join(',')
 
   useEffect(() => {
     if (!canManage) return
@@ -318,18 +389,18 @@ const MyArticles: React.FC = () => {
     form.visibility,
     form.coverImage,
     form.categoryId,
-    form.classroomIds.join(','),
-    selectedTagIds.join(','),
+    classroomIdsKey,
+    selectedTagIdsKey,
   ])
 
   const saveArticle = async () => {
     if (!form.title.trim() || !form.content.trim()) {
-      toast.error('Titre et contenu sont requis')
+      toast.error(t('articles.new.title_and_content_required'))
       return
     }
 
     if (form.visibility === 'CLASS_ONLY' && form.classroomIds.length === 0) {
-      toast.error('Sélectionnez au moins une classe (visibilité: classe uniquement).')
+      toast.error(t('articles.new.select_at_least_one_class'))
       return
     }
 
@@ -342,7 +413,7 @@ const MyArticles: React.FC = () => {
       const words = plainText ? plainText.split(/\s+/).length : 0
       const estimatedReadingTime = Math.max(1, Math.round(words / 200))
 
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         title: form.title.trim(),
         slug: form.slug.trim() || undefined,
         excerpt: form.excerpt.trim() || undefined,
@@ -359,17 +430,18 @@ const MyArticles: React.FC = () => {
 
       if (form.id) {
         await api.put(`/articles/${form.id}`, payload)
-        toast.success('Article mis à jour')
+        toast.success(t('articles.new.updated'))
       } else {
         await api.post('/articles', payload)
-        toast.success('Article créé')
+        toast.success(t('articles.new.created'))
       }
 
       setLastAutoSavedAt(null)
       setHasUnsavedChanges(false)
       navigate('/dashboard/articles')
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Erreur lors de l'enregistrement")
+    } catch (error: unknown) {
+      const message = (error as AxiosErrorLike)?.response?.data?.message
+      toast.error(message || t('articles.new.save_error'))
     } finally {
       setSaving(false)
     }
@@ -430,14 +502,14 @@ const MyArticles: React.FC = () => {
 
   const publishChecklist = useMemo(() => {
     return [
-      { label: 'Titre renseigné', done: form.title.trim().length > 0 },
-      { label: 'Contenu rédigé', done: form.content.trim().length > 0 },
-      { label: 'Image de couverture', done: form.coverImage.trim().length > 0 },
-      { label: 'Résumé ajouté', done: form.excerpt.trim().length > 0 },
-      { label: 'Catégorie sélectionnée', done: !!form.categoryId },
-      { label: 'Au moins 1 tag', done: selectedTagIds.length > 0 },
+      { label: t('articles.new.checklist.title_provided'), done: form.title.trim().length > 0 },
+      { label: t('articles.new.checklist.content_written'), done: form.content.trim().length > 0 },
+      { label: t('articles.new.checklist.cover_image'), done: form.coverImage.trim().length > 0 },
+      { label: t('articles.new.checklist.excerpt_added'), done: form.excerpt.trim().length > 0 },
+      { label: t('articles.new.checklist.category_selected'), done: !!form.categoryId },
+      { label: t('articles.new.checklist.at_least_one_tag'), done: selectedTagIds.length > 0 },
     ]
-  }, [form, selectedTagIds])
+  }, [form, selectedTagIds, t])
 
   const completionRate = Math.round(
     (publishChecklist.filter((c) => c.done).length / publishChecklist.length) * 100
@@ -461,12 +533,12 @@ const MyArticles: React.FC = () => {
 
   const duplicateArticle = async () => {
     if (!form.id) return
-    if (!window.confirm('Dupliquer cet article en nouveau brouillon ?')) return
+    if (!window.confirm(t('articles.new.confirm_duplicate'))) return
 
     try {
       setSaving(true)
-      const payload: any = {
-        title: `${form.title.trim() || 'Article'} (copie)`,
+      const payload: Record<string, unknown> = {
+        title: `${form.title.trim() || t('article.default', 'Article')} ${t('articles.new.copy_suffix', '(copie)')}`,
         excerpt: form.excerpt.trim() || undefined,
         content: form.content.trim(),
         status: 'DRAFT' as ArticleStatus,
@@ -481,14 +553,15 @@ const MyArticles: React.FC = () => {
 
       const res = await api.post('/articles', payload)
       const created = res.data?.data
-      toast.success('Article dupliqué')
+      toast.success(t('articles.new.duplicated'))
       if (created?.slug) {
         navigate(`/dashboard/articles/${created.slug}/edit`)
       } else {
         navigate('/dashboard/articles')
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur lors de la duplication')
+    } catch (error: unknown) {
+      const message = (error as AxiosErrorLike)?.response?.data?.message
+      toast.error(message || t('articles.new.duplicate_error'))
     } finally {
       setSaving(false)
     }
@@ -518,9 +591,10 @@ const MyArticles: React.FC = () => {
       const created = res.data?.data
       setCategories((prev) => [...prev, created])
       setNewCategoryName('')
-      toast.success('Catégorie créée')
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur')
+      toast.success(t('articles.new.category_created', 'Catégorie créée'))
+    } catch (error: unknown) {
+      const message = (error as AxiosErrorLike)?.response?.data?.message
+      toast.error(message || t('articles.new.generic_error', 'Erreur'))
     } finally {
       setCreatingMeta(false)
     }
@@ -535,9 +609,10 @@ const MyArticles: React.FC = () => {
       const created = res.data?.data
       setTags((prev) => [...prev, created])
       setNewTagName('')
-      toast.success('Tag créé')
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur')
+      toast.success(t('articles.new.tag_created', 'Tag créé'))
+    } catch (error: unknown) {
+      const message = (error as AxiosErrorLike)?.response?.data?.message
+      toast.error(message || t('articles.new.generic_error', 'Erreur'))
     } finally {
       setCreatingMeta(false)
     }
@@ -553,17 +628,9 @@ const MyArticles: React.FC = () => {
     }
   }
 
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-
-    const files = e.dataTransfer.files
-    if (!files || files.length === 0) return
-
-    const file = files[0]
+  const uploadCoverFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      toast.error('Seules les images sont acceptées')
+      toast.error(t('articles.new.upload_image_only'))
       return
     }
 
@@ -579,19 +646,32 @@ const MyArticles: React.FC = () => {
       const uploaded = res.data?.data
       if (uploaded?.url) {
         handleFieldChange((prev) => ({ ...prev, coverImage: uploaded.url }))
-        toast.success('Image uploadée')
+        toast.success(t('articles.new.image_uploaded'))
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur upload')
+    } catch (error: unknown) {
+      const message = (error as AxiosErrorLike)?.response?.data?.message
+      toast.error(message || t('articles.new.upload_error', "Erreur lors de l'upload"))
     }
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    await uploadCoverFile(file)
   }
 
   if (!canManage) {
     return (
       <div className="p-6">
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Mes articles</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('articles.new.my_articles')}</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Seuls les enseignants et administrateurs peuvent créer des articles.
+          {t('articles.new.only_teachers_admins')}
         </p>
       </div>
     )
@@ -607,18 +687,22 @@ const MyArticles: React.FC = () => {
               type="button"
               onClick={() => navigate('/dashboard/articles')}
               className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+              aria-label={t('articles.new.back_to_articles', 'Retour à la liste')}
             >
               <ArrowLeftIcon className="h-4 w-4" />
             </button>
             <div>
               <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {routeSlug ? 'Éditer l\'article' : 'Nouvel article'}
+                {routeSlug ? t('articles.new.edit_title') : t('articles.new.create_title')}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {autoSaving && 'Auto-sauvegarde...'}
-                {lastAutoSavedAt && !autoSaving && `Auto-sauvegardé à ${lastAutoSavedAt.toLocaleTimeString('fr-FR')}`}
-                {hasUnsavedChanges && !autoSaving && !lastAutoSavedAt && 'Modifications non sauvegardées'}
-                {!hasUnsavedChanges && !autoSaving && 'Tout est sauvegardé'}
+                {autoSaving && t('articles.new.auto_saving')}
+                {lastAutoSavedAt && !autoSaving && t('articles.new.auto_saved_at', { time: formatTime(lastAutoSavedAt) })}
+                {hasUnsavedChanges && !autoSaving && !lastAutoSavedAt && t('articles.new.unsaved_changes')}
+                {!hasUnsavedChanges && !autoSaving && t('articles.new.all_saved')}
+                {autoSaveFailed && !autoSaving && (
+                  <span className="text-red-600 dark:text-red-400"> {t('articles.new.auto_save_failed_short', '(auto‑sauvegarde en échec)')}</span>
+                )}
               </p>
             </div>
           </div>
@@ -632,7 +716,7 @@ const MyArticles: React.FC = () => {
                 className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
               >
                 <DocumentDuplicateIcon className="h-4 w-4" />
-                Dupliquer
+                {t('articles.new.duplicate')}
               </button>
             )}
             <button
@@ -642,7 +726,7 @@ const MyArticles: React.FC = () => {
               className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               <BookmarkIcon className="h-4 w-4" />
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+              {saving ? t('articles.new.saving') : t('articles.new.save')}
             </button>
           </div>
         </div>
@@ -652,31 +736,81 @@ const MyArticles: React.FC = () => {
           {/* Colonne principale - Éditeur */}
           <div className="lg:col-span-8 space-y-4">
             {/* Titre */}
-            <div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    {t('articles.new.title_label', 'Titre')}
+                  </label>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {t('articles.new.title_help', 'Idéalement entre 30 et 60 caractères.')}
+                  </p>
+                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    form.title.length === 0
+                      ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                      : form.title.length < 30
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+                        : form.title.length <= 60
+                          ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-200'
+                  }`}
+                >
+                  {t('articles.new.length_hint', { count: form.title.length, max: 60, defaultValue: '{{count}}/{{max}} caractères' })}
+                </span>
+              </div>
+
               <input
                 type="text"
                 value={form.title}
                 onChange={(e) => handleFieldChange((prev) => ({ ...prev, title: e.target.value }))}
-                className="w-full border-0 bg-transparent px-0 text-3xl font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100"
-                placeholder="Titre de votre article..."
+                className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-lg font-semibold text-slate-900 placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                placeholder={t('articles.new.title_placeholder')}
+                aria-label={t('articles.new.title_label', 'Titre')}
               />
-              <div className="mt-1 flex items-center gap-2 text-xs">
-                <span className={`${form.title.length >= 30 && form.title.length <= 60 ? 'text-green-600' : 'text-amber-600'}`}>
-                  {form.title.length}/60 caractères
-                </span>
-                {form.title.length > 0 && form.title.length < 30 && (
-                  <span className="text-amber-600">• Titre trop court pour le SEO</span>
-                )}
-                {form.title.length > 60 && (
-                  <span className="text-red-600">• Titre trop long pour le SEO</span>
-                )}
+
+              <div className="mt-3">
+                <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-800">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${
+                      form.title.length === 0
+                        ? 'bg-slate-300 dark:bg-slate-700'
+                        : form.title.length < 30
+                          ? 'bg-amber-500'
+                          : form.title.length <= 60
+                            ? 'bg-green-600'
+                            : 'bg-red-600'
+                    }`}
+                    style={{ width: `${Math.min(100, Math.round((form.title.length / 60) * 100))}%` }}
+                  />
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                  {form.title.length > 0 && form.title.length < 30 && (
+                    <span className="text-amber-700 dark:text-amber-300">
+                      {t('articles.new.title_too_short')}
+                    </span>
+                  )}
+                  {form.title.length > 60 && (
+                    <span className="text-red-700 dark:text-red-300">
+                      {t('articles.new.title_too_long')}
+                    </span>
+                  )}
+                  {form.title.length >= 30 && form.title.length <= 60 && (
+                    <span className="text-green-700 dark:text-green-300">
+                      {t('articles.new.title_ok', 'Longueur recommandée')}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Slug */}
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">URL</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">{t('articles.new.url_label', 'URL')}</label>
                 <button
                   type="button"
                   onClick={() =>
@@ -687,7 +821,7 @@ const MyArticles: React.FC = () => {
                   }
                   className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
                 >
-                  Générer depuis le titre
+                  {t('articles.new.generate_from_title')}
                 </button>
               </div>
               <input
@@ -700,7 +834,7 @@ const MyArticles: React.FC = () => {
                   }))
                 }
                 className="mt-1 w-full border-0 bg-transparent px-0 text-sm text-slate-900 focus:outline-none focus:ring-0 dark:text-slate-100"
-                placeholder="mon-article-url"
+                placeholder={t('articles.new.slug_placeholder')}
               />
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 /articles/{form.slug || '...'}
@@ -709,23 +843,23 @@ const MyArticles: React.FC = () => {
 
             {/* Excerpt */}
             <div>
-              <label className="text-sm font-medium text-slate-900 dark:text-slate-100">Résumé</label>
+              <label className="text-sm font-medium text-slate-900 dark:text-slate-100">{t('articles.new.excerpt_label')}</label>
               <textarea
                 value={form.excerpt}
                 onChange={(e) => handleFieldChange((prev) => ({ ...prev, excerpt: e.target.value }))}
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                placeholder="Un court résumé pour présenter l'article (apparaît dans les listes et sur les moteurs de recherche)..."
+                placeholder={t('articles.new.excerpt_placeholder')}
               />
               <div className="mt-1 flex items-center gap-2 text-xs">
                 <span className={`${form.excerpt.length >= 120 && form.excerpt.length <= 160 ? 'text-green-600' : 'text-amber-600'}`}>
-                  {form.excerpt.length}/160 caractères
+                  {t('articles.new.length_hint', { count: form.excerpt.length, max: 160, defaultValue: '{{count}}/{{max}} caractères' })}
                 </span>
                 {form.excerpt.length > 0 && form.excerpt.length < 120 && (
-                  <span className="text-amber-600">• Trop court pour le SEO</span>
+                  <span className="text-amber-600">• {t('articles.new.excerpt_too_short')}</span>
                 )}
                 {form.excerpt.length > 160 && (
-                  <span className="text-red-600">• Trop long pour le SEO</span>
+                  <span className="text-red-600">• {t('articles.new.excerpt_too_long')}</span>
                 )}
               </div>
             </div>
@@ -743,40 +877,69 @@ const MyArticles: React.FC = () => {
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">Image de couverture</label>
-                <button
-                  type="button"
-                  onClick={() => setShowCoverGallery(true)}
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
-                >
-                  <PhotoIcon className="h-4 w-4" />
-                  Galerie
-                </button>
+                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">{t('articles.new.cover_image')}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={coverFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) void uploadCoverFile(file)
+                      e.currentTarget.value = ''
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => coverFileInputRef.current?.click()}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                  >
+                    <CloudArrowUpIcon className="h-4 w-4" />
+                    {t('articles.new.upload_cover', 'Uploader')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCoverGallery(true)}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                  >
+                    <PhotoIcon className="h-4 w-4" />
+                    {t('articles.new.gallery')}
+                  </button>
+                </div>
               </div>
               {form.coverImage.trim() ? (
                 <div className="mt-2 group relative overflow-hidden rounded-lg">
                   <img
                     src={form.coverImage}
-                    alt="Couverture"
+                    alt={t('articles.new.cover_image')}
                     className="h-48 w-full object-cover"
                   />
                   <button
                     type="button"
                     onClick={() => handleFieldChange((prev) => ({ ...prev, coverImage: '' }))}
-                    className="absolute right-2 top-2 rounded-lg bg-red-600 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute right-2 top-2 rounded-lg bg-red-600 px-2 py-1 text-xs text-white opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    aria-label={t('articles.new.remove', 'Supprimer')}
                   >
-                    Supprimer
+                    {t('articles.new.remove')}
                   </button>
                 </div>
               ) : (
                 <div className="mt-2 flex flex-col items-center justify-center py-8 text-center">
                   <CloudArrowUpIcon className="h-12 w-12 text-slate-400" />
                   <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    Glissez-déposez une image ici
+                    {t('articles.new.drag_drop_image_here')}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    ou cliquez sur "Galerie" pour choisir
+                    {t('articles.new.or_click_gallery')}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => coverFileInputRef.current?.click()}
+                    className="mt-3 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700"
+                  >
+                    {t('articles.new.choose_file', 'Choisir un fichier')}
+                  </button>
                 </div>
               )}
             </div>
@@ -795,7 +958,7 @@ const MyArticles: React.FC = () => {
                     }`}
                   >
                     <PencilIcon className="h-4 w-4" />
-                    Édition
+                    {t('articles.new.tab.edit')}
                   </button>
                   <button
                     type="button"
@@ -807,7 +970,7 @@ const MyArticles: React.FC = () => {
                     }`}
                   >
                     <EyeIcon className="h-4 w-4" />
-                    Aperçu
+                    {t('articles.new.tab.preview')}
                   </button>
                 </div>
                 <button
@@ -815,7 +978,7 @@ const MyArticles: React.FC = () => {
                   onClick={() => setFullscreenEditor(!fullscreenEditor)}
                   className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 >
-                  {fullscreenEditor ? 'Quitter plein écran' : 'Plein écran'}
+                  {fullscreenEditor ? t('articles.new.exit_fullscreen') : t('articles.new.fullscreen')}
                 </button>
               </div>
 
@@ -894,7 +1057,9 @@ const MyArticles: React.FC = () => {
             {/* Checklist publication */}
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Checklist</h3>
+                <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {t('articles.new.checklist_title', 'Checklist')}
+                </h3>
                 <span className="text-xs text-slate-500">{completionRate}%</span>
               </div>
               <div className="mt-3 space-y-2">
@@ -917,11 +1082,13 @@ const MyArticles: React.FC = () => {
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
                 <GlobeAltIcon className="h-4 w-4" />
-                Publication
+                {t('articles.new.publication_title', 'Publication')}
               </h3>
               <div className="mt-3 space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Statut</label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {t('articles.new.status_label', 'Statut')}
+                  </label>
                   <select
                     value={form.status}
                     onChange={(e) =>
@@ -929,13 +1096,15 @@ const MyArticles: React.FC = () => {
                     }
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   >
-                    <option value="DRAFT">Brouillon</option>
-                    <option value="PUBLISHED">Publié</option>
-                    <option value="ARCHIVED">Archivé</option>
+                    <option value="DRAFT">{t('articles.new.status.draft', 'Brouillon')}</option>
+                    <option value="PUBLISHED">{t('articles.new.status.published', 'Publié')}</option>
+                    <option value="ARCHIVED">{t('articles.new.status.archived', 'Archivé')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Visibilité</label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {t('articles.new.visibility_label', 'Visibilité')}
+                  </label>
                   <select
                     value={form.visibility}
                     onChange={(e) =>
@@ -946,10 +1115,15 @@ const MyArticles: React.FC = () => {
                     }
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   >
-                    <option value="PUBLIC">Public</option>
-                    <option value="LOGGED_IN">Connectés</option>
-                    <option value="CLASS_ONLY">Classe uniquement</option>
+                    <option value="PUBLIC">{t('articles.new.visibility.public', 'Public')}</option>
+                    <option value="LOGGED_IN">{t('articles.new.visibility.logged_in', 'Connectés')}</option>
+                    <option value="CLASS_ONLY">{t('articles.new.visibility.class_only', 'Classe uniquement')}</option>
                   </select>
+                  {form.visibility === 'CLASS_ONLY' && form.classroomIds.length === 0 && (
+                    <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                      {t('articles.new.visibility_class_warning', 'Choisissez au moins une classe pour cette visibilité.')}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -958,7 +1132,7 @@ const MyArticles: React.FC = () => {
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
                 <UserGroupIcon className="h-4 w-4" />
-                Classes liées
+                {t('articles.new.classrooms_title', 'Classes liées')}
               </h3>
               <select
                 value=""
@@ -968,7 +1142,7 @@ const MyArticles: React.FC = () => {
                 }}
                 className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               >
-                <option value="">Ajouter une classe...</option>
+                <option value="">{t('articles.new.add_classroom_placeholder', 'Ajouter une classe...')}</option>
                 {classrooms
                   .filter((c) => !form.classroomIds.includes(c.id))
                   .map((c) => (
@@ -979,7 +1153,7 @@ const MyArticles: React.FC = () => {
               </select>
               <div className="mt-2 flex flex-wrap gap-2">
                 {form.classroomIds.length === 0 ? (
-                  <span className="text-xs text-slate-500">Aucune classe</span>
+                  <span className="text-xs text-slate-500">{t('articles.new.no_classroom', 'Aucune classe')}</span>
                 ) : (
                   form.classroomIds.map((id) => {
                     const c = classrooms.find((x) => x.id === id)
@@ -989,8 +1163,9 @@ const MyArticles: React.FC = () => {
                         type="button"
                         onClick={() => removeClassroom(id)}
                         className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700 hover:bg-red-50 hover:border-red-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                        aria-label={t('articles.new.remove_classroom', { name: c?.name || t('articles.new.classroom', 'Classe'), defaultValue: 'Retirer {{name}}' })}
                       >
-                        {c?.name || 'Classe'} ×
+                        {c?.name || t('articles.new.classroom', 'Classe')} ×
                       </button>
                     )
                   })
@@ -1002,7 +1177,7 @@ const MyArticles: React.FC = () => {
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
                 <FolderIcon className="h-4 w-4" />
-                Catégorie
+                {t('articles.new.category_title', 'Catégorie')}
               </h3>
               <select
                 value={form.categoryId || ''}
@@ -1014,7 +1189,7 @@ const MyArticles: React.FC = () => {
                 }
                 className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               >
-                <option value="">Aucune</option>
+                <option value="">{t('articles.new.none', 'Aucune')}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -1026,7 +1201,7 @@ const MyArticles: React.FC = () => {
                   type="text"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Nouvelle..."
+                  placeholder={t('articles.new.new_category_placeholder', 'Nouvelle...')}
                   className="flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
                 <button
@@ -1034,6 +1209,7 @@ const MyArticles: React.FC = () => {
                   onClick={() => void createCategory()}
                   disabled={creatingMeta || !newCategoryName.trim()}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                  aria-label={t('articles.new.add_category', 'Ajouter une catégorie')}
                 >
                   +
                 </button>
@@ -1044,13 +1220,13 @@ const MyArticles: React.FC = () => {
             <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
                 <TagIcon className="h-4 w-4" />
-                Tags
+                {t('articles.new.tags_title', 'Tags')}
               </h3>
               <input
                 type="text"
                 value={tagSearch}
                 onChange={(e) => setTagSearch(e.target.value)}
-                placeholder="Filtrer..."
+                placeholder={t('articles.new.filter_tags_placeholder', 'Filtrer...')}
                 className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               />
               <div className="mt-2 flex flex-wrap gap-2">
@@ -1074,7 +1250,7 @@ const MyArticles: React.FC = () => {
                   type="text"
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="Nouveau tag..."
+                  placeholder={t('articles.new.new_tag_placeholder', 'Nouveau tag...')}
                   className="flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
                 <button
@@ -1082,6 +1258,7 @@ const MyArticles: React.FC = () => {
                   onClick={() => void createTag()}
                   disabled={creatingMeta || !newTagName.trim()}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                  aria-label={t('articles.new.add_tag', 'Ajouter un tag')}
                 >
                   +
                 </button>

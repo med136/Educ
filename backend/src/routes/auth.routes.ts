@@ -9,6 +9,28 @@ import { validateRequest } from '../middleware/validation'
 
 const router = Router()
 
+/**
+ * @openapi
+ * /api/v1/auth/register:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Create a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *               firstName: { type: string }
+ *               lastName: { type: string }
+ *     responses:
+ *       201:
+ *         description: User created
+ */
 // POST /auth/register
 router.post(
   '/register',
@@ -79,6 +101,26 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/auth/login:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Login and obtain access token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Tokens
+ */
 // POST /auth/login
 router.post(
   '/login',
@@ -146,6 +188,25 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/auth/refresh:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Refresh access token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken: { type: string }
+ *     responses:
+ *       200:
+ *         description: New access token
+ */
 // POST /auth/refresh
 router.post(
   '/refresh',
@@ -185,6 +246,19 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/auth/logout:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Logout current user
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ */
 // POST /auth/logout
 router.post('/logout', authenticate, asyncHandler(async (_req: AuthRequest, res: Response) => {
   // In a real app, you'd invalidate the token here
@@ -194,6 +268,19 @@ router.post('/logout', authenticate, asyncHandler(async (_req: AuthRequest, res:
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/auth/me:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     summary: Get current authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user object
+ */
 // GET /auth/me
 router.get('/me', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
   const user = await prisma.user.findUnique({

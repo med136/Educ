@@ -1,153 +1,63 @@
 import { Express } from 'express'
 import swaggerUi from 'swagger-ui-express'
+import path from 'path'
 
-const swaggerDocument = {
+const baseDefinition = {
   openapi: '3.0.0',
   info: {
     title: 'EduShare API',
     version: '1.0.0',
     description: 'API pour la plateforme de partage de documents éducatifs',
-    contact: {
-      name: 'Équipe EduShare',
-      email: 'contact@edushare.com',
-    },
+    contact: { name: 'Équipe EduShare', email: 'contact@edushare.com' },
   },
-  servers: [
-    {
-      url: 'http://localhost:3000/api/v1',
-      description: 'Serveur de développement',
-    },
-  ],
-  tags: [
-    { name: 'Auth', description: 'Authentification et gestion des sessions' },
-    { name: 'Users', description: 'Gestion des utilisateurs' },
-    { name: 'Documents', description: 'Gestion des documents' },
-    { name: 'Classrooms', description: 'Gestion des classes' },
-    { name: 'Admin', description: 'Administration' },
-  ],
-  paths: {
-    '/auth/login': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Connexion utilisateur',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  email: { type: 'string', format: 'email' },
-                  password: { type: 'string', minLength: 6 },
-                },
-                required: ['email', 'password'],
-              },
-            },
-          },
-        },
-        responses: {
-          '200': { description: 'Connexion réussie' },
-          '401': { description: 'Identifiants invalides' },
-        },
-      },
-    },
-    '/auth/register': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Inscription utilisateur',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  email: { type: 'string', format: 'email' },
-                  password: { type: 'string', minLength: 6 },
-                  firstName: { type: 'string' },
-                  lastName: { type: 'string' },
-                  role: { type: 'string', enum: ['STUDENT', 'TEACHER', 'PARENT'] },
-                },
-                required: ['email', 'password', 'firstName', 'lastName', 'role'],
-              },
-            },
-          },
-        },
-        responses: {
-          '201': { description: 'Utilisateur créé' },
-          '400': { description: 'Données invalides' },
-        },
-      },
-    },
-    '/users/me': {
-      get: {
-        tags: ['Users'],
-        summary: 'Obtenir le profil de l\'utilisateur connecté',
-        security: [{ bearerAuth: [] }],
-        responses: {
-          '200': { description: 'Profil utilisateur' },
-          '401': { description: 'Non authentifié' },
-        },
-      },
-    },
-    '/documents': {
-      get: {
-        tags: ['Documents'],
-        summary: 'Liste des documents',
-        security: [{ bearerAuth: [] }],
-        responses: {
-          '200': { description: 'Liste des documents' },
-        },
-      },
-      post: {
-        tags: ['Documents'],
-        summary: 'Uploader un document',
-        security: [{ bearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'multipart/form-data': {
-              schema: {
-                type: 'object',
-                properties: {
-                  file: { type: 'string', format: 'binary' },
-                  title: { type: 'string' },
-                  description: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          '201': { description: 'Document créé' },
-        },
-      },
-    },
-    '/classrooms': {
-      get: {
-        tags: ['Classrooms'],
-        summary: 'Liste des classes',
-        security: [{ bearerAuth: [] }],
-        responses: {
-          '200': { description: 'Liste des classes' },
-        },
-      },
-    },
-  },
+  servers: [ { url: 'http://localhost:3000/api/v1', description: 'Serveur de développement' } ],
   components: {
-    securitySchemes: {
-      bearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-    },
+    securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } },
   },
 }
 
-export const setupSwagger = (app: Express): void => {
+function tryCreateSpec(): any {
+  try {
+    // dynamic require so code still runs when package is not installed
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const swaggerJSDoc = require('swagger-jsdoc')
+    const options = {
+      definition: baseDefinition,
+      apis: [path.join(__dirname, '..', 'routes', '**', '*.ts')],
+    }
+    return swaggerJSDoc(options)
+  } catch (err) {
+    // fallback to minimal spec if swagger-jsdoc is not installed or fails
+    // eslint-disable-next-line no-console
+    console.warn('swagger-jsdoc not available — serving static minimal spec. To enable generation, run: npm --prefix backend install swagger-jsdoc')
+    return { ...baseDefinition, paths: {} }
+  }
+}
+
+export function setupSwagger(app: Express): void {
+  const swaggerDocument = tryCreateSpec()
+
+  // Log how many paths were discovered to help debugging
+  const pathCount = swaggerDocument && swaggerDocument.paths ? Object.keys(swaggerDocument.paths).length : 0
+  // eslint-disable-next-line no-console
+  console.info(`Swagger spec loaded — paths: ${pathCount}`)
+
+  // If no paths were generated, optionally fail fast (useful in CI / strict environments)
+  if (pathCount === 0) {
+    console.warn('No paths detected in generated Swagger spec. Ensure your routes have @openapi annotations or JSDoc comments.')
+    if (process.env.SWAGGER_FAIL_ON_EMPTY === 'true') {
+      console.error('SWAGGER_FAIL_ON_EMPTY is set — failing startup because no swagger paths were discovered.')
+      process.exit(1)
+    }
+  }
+
+  // Expose the raw spec so it's easy to inspect if UI shows nothing
+  app.get('/api-docs.json', (_req, res) => res.json(swaggerDocument))
+
   app.use('/api-docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument, {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: 'EduShare API Documentation',
   }) as any)
 }
+
+export default setupSwagger

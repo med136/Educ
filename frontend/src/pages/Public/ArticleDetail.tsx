@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { useSettings } from '../../context/SettingsContext'
@@ -37,9 +37,8 @@ interface ArticleComment {
 }
 
 const ArticleDetail: React.FC = () => {
-  useTranslation()
+  const { t, i18n } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
-  const navigate = useNavigate()
   const { settings, loading: settingsLoading } = useSettings()
   const [article, setArticle] = useState<ArticleDetailData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -49,10 +48,30 @@ const ArticleDetail: React.FC = () => {
   const [commentForm, setCommentForm] = useState({ authorName: '', authorEmail: '', content: '' })
   const [submitting, setSubmitting] = useState(false)
 
+  const commentsEnabled = settings?.general?.enableComments ?? true
+
   const isHtmlContent = useMemo(() => {
     if (!article?.content) return false
     return /<\s*(p|h1|h2|h3|ul|ol|li|strong|em|a|div)[^>]*>/i.test(article.content)
   }, [article?.content])
+
+  const formatDate = (dateValue?: string | null) => {
+    if (!dateValue) return ''
+    try {
+      return new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(dateValue))
+    } catch {
+      return new Date(dateValue).toLocaleDateString()
+    }
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      toast.success(t('article.link_copied', 'Lien copié'))
+    } catch {
+      toast.error(t('article.copy_error', 'Impossible de copier'))
+    }
+  }
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -64,25 +83,22 @@ const ArticleDetail: React.FC = () => {
         setArticle(response.data?.data)
       } catch (err: any) {
         if (err.response?.status === 404) {
-          navigate('/articles', { replace: true })
+          setArticle(null)
+          setError(t('article.not_found', 'Article introuvable'))
           return
         }
-        setError(err.response?.data?.message || "Erreur lors du chargement de l'article")
+        setError(err.response?.data?.message || t('article.load_error', "Erreur lors du chargement de l'article"))
       } finally {
         setLoading(false)
       }
     }
 
     void fetchArticle()
-  }, [slug, navigate])
+  }, [slug, t])
 
   useEffect(() => {
     const fetchComments = async () => {
-      const commentsEnabled = settings?.general?.enableComments ?? true
-      if (!article?.id || !commentsEnabled) {
-        console.log('Comments fetch skipped. Article ID:', article?.id, 'Enable comments:', commentsEnabled)
-        return
-      }
+      if (!article?.id || !commentsEnabled) return
       try {
         setLoadingComments(true)
         const response = await api.get('/article-comments', { params: { articleId: article.id } })
@@ -95,18 +111,18 @@ const ArticleDetail: React.FC = () => {
     }
 
     void fetchComments()
-  }, [article?.id, settings?.general?.enableComments])
+  }, [article?.id, commentsEnabled])
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!article?.id) return
-    if (!(settings?.general?.enableComments ?? true)) {
-      toast.error('Les commentaires sont désactivés pour le moment')
+    if (!commentsEnabled) {
+      toast.error(t('article.comments_disabled', 'Les commentaires sont désactivés pour le moment'))
       return
     }
     if (!commentForm.authorName.trim() || !commentForm.content.trim()) {
-      toast.error('Nom et commentaire requis')
+      toast.error(t('article.comments_required', 'Nom et commentaire requis'))
       return
     }
 
@@ -118,10 +134,10 @@ const ArticleDetail: React.FC = () => {
         authorEmail: commentForm.authorEmail.trim() || undefined,
         content: commentForm.content.trim(),
       })
-      toast.success('Commentaire soumis ! Il sera publié après modération.')
+      toast.success(t('article.comment_submitted', 'Commentaire soumis ! Il sera publié après modération.'))
       setCommentForm({ authorName: '', authorEmail: '', content: '' })
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la soumission')
+      toast.error(err.response?.data?.message || t('article.submit_error', 'Erreur lors de la soumission'))
     } finally {
       setSubmitting(false)
     }
@@ -130,22 +146,41 @@ const ArticleDetail: React.FC = () => {
   return (
     <div className="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
       <section className="border-b border-slate-200/80 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-          <div className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div>
             <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400">
-              Accueil
+              {t('nav.home', 'Accueil')}
             </Link>
             <span className="mx-1">/</span>
             <Link to="/articles" className="hover:text-indigo-600 dark:hover:text-indigo-400">
-              Articles
+              {t('articles.breadcrumb', 'Articles')}
             </Link>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+            >
+              {t('article.copy_link', 'Copier le lien')}
+            </button>
           </div>
-          {loading && <p className="text-sm text-slate-500">Chargement de l&apos;article...</p>}
-          {error && !loading && <p className="text-sm text-red-500">{error}</p>}
+          {loading && <p className="text-sm text-slate-500">{t('article.loading', "Chargement de l'article...")}</p>}
+          {error && !loading && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-red-500">{error}</p>
+              <Link
+                to="/articles"
+                className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                {t('article.back_to_articles', 'Retour aux articles')}
+              </Link>
+            </div>
+          )}
           {!loading && !error && article && (
             <>
               <p className="text-[11px] uppercase tracking-wide text-indigo-500 mb-1">
-                {article.category?.name || 'Ressource'}
+                {article.category?.name || t('article.resource', 'Ressource')}
               </p>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
                 {article.title}
@@ -158,14 +193,12 @@ const ArticleDetail: React.FC = () => {
                 )}
                 <span>•</span>
                 <span>
-                  {article.publishedAt
-                    ? new Date(article.publishedAt).toLocaleDateString('fr-FR')
-                    : new Date(article.createdAt).toLocaleDateString('fr-FR')}
+                  {formatDate(article.publishedAt || article.createdAt)}
                 </span>
                 {article.readingTime && (
                   <>
                     <span>•</span>
-                    <span>{article.readingTime} min de lecture</span>
+                    <span>{t('article.reading_time', { minutes: article.readingTime, defaultValue: '{{minutes}} min de lecture' })}</span>
                   </>
                 )}
               </div>
@@ -176,29 +209,60 @@ const ArticleDetail: React.FC = () => {
 
       {!loading && !error && article && (
         <section className="bg-slate-50 dark:bg-slate-950">
-          <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-            {article.coverImage && (
-              <div className="mb-6 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900">
-                <img
-                  src={article.coverImage}
-                  alt={article.title}
-                  className="h-56 w-full object-cover"
-                />
+          <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+            <div className="grid gap-8 lg:grid-cols-12">
+              <div className="lg:col-span-8">
+                {article.coverImage && (
+                  <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="aspect-[16/9] w-full">
+                      <img
+                        src={article.coverImage}
+                        alt={article.title}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+                {article.excerpt && (
+                  <p className="mb-6 text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200">
+                    {article.excerpt}
+                  </p>
+                )}
+                <div className="article-content">
+                  {isHtmlContent ? (
+                    <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content }} />
+                  ) : (
+                    article.content.split('\n').map((para, index) => <p key={index}>{para}</p>)
+                  )}
+                </div>
               </div>
-            )}
-            {article.excerpt && (
-              <p className="mb-4 text-sm font-medium text-slate-700 dark:text-slate-200">
-                {article.excerpt}
-              </p>
-            )}
-            <div className="prose prose-sm max-w-none text-slate-800 prose-headings:text-slate-900 prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-invert dark:text-slate-100">
-              {isHtmlContent ? (
-                <div dangerouslySetInnerHTML={{ __html: article.content }} />
-              ) : (
-                article.content.split('\n').map((para, index) => (
-                  <p key={index}>{para}</p>
-                ))
-              )}
+
+              <aside className="lg:col-span-4">
+                <div className="sticky top-24 space-y-3">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {article.author
+                        ? `${article.author.firstName} ${article.author.lastName}`
+                        : t('article.unknown_author', 'Auteur inconnu')}
+                    </div>
+                    <div className="mt-2 space-y-1 text-sm text-slate-700 dark:text-slate-200">
+                      <div>{formatDate(article.publishedAt || article.createdAt)}</div>
+                      {article.readingTime ? (
+                        <div>
+                          {t('article.reading_time', { minutes: article.readingTime, defaultValue: '{{minutes}} min de lecture' })}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <Link
+                    to="/articles"
+                    className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                  >
+                    {t('article.back_to_articles', 'Retour aux articles')}
+                  </Link>
+                </div>
+              </aside>
             </div>
           </div>
         </section>
@@ -206,22 +270,22 @@ const ArticleDetail: React.FC = () => {
 
       {!loading && !error && article && (
         <section className="bg-white dark:bg-slate-900">
-          <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+          <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
             <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-50">
-              Commentaires ({comments.length})
+              {t('article.comments_title', 'Commentaires')} ({comments.length})
             </h2>
 
             {settingsLoading ? (
-              <p className="text-sm text-slate-500">Chargement des paramètres...</p>
-            ) : !(settings?.general?.enableComments ?? true) ? (
+              <p className="text-sm text-slate-500">{t('article.settings_loading', 'Chargement des paramètres...')}</p>
+            ) : !commentsEnabled ? (
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-                Les commentaires sont désactivés actuellement.
+                {t('article.comments_disabled', 'Les commentaires sont désactivés pour le moment')}
               </div>
             ) : loadingComments ? (
-              <p className="text-sm text-slate-500">Chargement des commentaires...</p>
+              <p className="text-sm text-slate-500">{t('article.comments_loading', 'Chargement des commentaires...')}</p>
             ) : comments.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Aucun commentaire pour le moment. Soyez le premier à commenter !
+                {t('article.no_comments', 'Aucun commentaire pour le moment. Soyez le premier à commenter !')}
               </p>
             ) : (
               <div className="space-y-4">
@@ -235,7 +299,7 @@ const ArticleDetail: React.FC = () => {
                         {comment.authorName}
                       </span>
                       <span>•</span>
-                      <span>{new Date(comment.createdAt).toLocaleDateString('fr-FR')}</span>
+                      <span>{formatDate(comment.createdAt)}</span>
                     </div>
                     <p className="text-sm text-slate-800 dark:text-slate-100">{comment.content}</p>
                   </div>
@@ -243,21 +307,21 @@ const ArticleDetail: React.FC = () => {
               </div>
             )}
 
-            {settings.general.enableComments && (
+            {commentsEnabled && (
               <div className="mt-8">
                 <h3 className="mb-3 text-base font-medium text-slate-900 dark:text-slate-50">
-                  Laisser un commentaire
+                  {t('article.add_comment', 'Ajouter un commentaire')}
                 </h3>
                 <form onSubmit={handleSubmitComment} className="space-y-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                    Nom <span className="text-red-500">*</span>
+                    {t('article.name', 'Nom')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={commentForm.authorName}
                     onChange={(e) => setCommentForm((prev) => ({ ...prev, authorName: e.target.value }))}
-                    placeholder="Votre nom"
+                    placeholder={t('article.name_placeholder', 'Votre nom')}
                     required
                     maxLength={100}
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
@@ -266,32 +330,32 @@ const ArticleDetail: React.FC = () => {
 
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                    Email (optionnel)
+                    {t('article.email', 'Email (optionnel)')}
                   </label>
                   <input
                     type="email"
                     value={commentForm.authorEmail}
                     onChange={(e) => setCommentForm((prev) => ({ ...prev, authorEmail: e.target.value }))}
-                    placeholder="votre@email.com"
+                    placeholder={t('article.email_placeholder', 'votre@email.com')}
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </div>
 
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                    Commentaire <span className="text-red-500">*</span>
+                    {t('article.comment', 'Commentaire')} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     value={commentForm.content}
                     onChange={(e) => setCommentForm((prev) => ({ ...prev, content: e.target.value }))}
-                    placeholder="Votre commentaire..."
+                    placeholder={t('article.comment_placeholder', 'Votre commentaire...')}
                     required
                     maxLength={1000}
                     rows={4}
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {commentForm.content.length} / 1000 caractères
+                    {t('article.characters_count', { count: commentForm.content.length, max: 1000, defaultValue: '{{count}} / {{max}} caractères' })}
                   </p>
                 </div>
 
@@ -300,11 +364,11 @@ const ArticleDetail: React.FC = () => {
                   disabled={submitting}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  {submitting ? 'Envoi...' : 'Envoyer le commentaire'}
+                  {submitting ? t('article.sending', 'Envoi...') : t('article.submit', 'Envoyer')}
                 </button>
 
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Votre commentaire sera publié après modération par notre équipe.
+                  {t('article.moderation_note', 'Votre commentaire sera publié après modération par notre équipe.')}
                 </p>
               </form>
             </div>

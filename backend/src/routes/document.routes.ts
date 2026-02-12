@@ -52,6 +52,26 @@ const upload = multer({
 // All routes require authentication
 router.use(authenticate)
 
+/**
+ * @openapi
+ * /api/v1/documents:
+ *   get:
+ *     tags:
+ *       - Documents
+ *     summary: Get all documents for current user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: List of documents
+ */
 // GET /documents - Get all documents for current user
 router.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { page = '1', limit = '20', search, type } = req.query
@@ -103,6 +123,28 @@ router.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
 // Wrapper for multer to fix type compatibility
 const uploadMiddleware = upload.single('file') as any
 
+/**
+ * @openapi
+ * /api/v1/documents:
+ *   post:
+ *     tags:
+ *       - Documents
+ *     summary: Upload a new document (multipart/form-data)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Document uploaded
+ */
 // POST /documents - Upload a new document
 router.post('/', uploadMiddleware, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.file) {
@@ -155,6 +197,24 @@ router.post('/', uploadMiddleware, asyncHandler(async (req: AuthRequest, res: Re
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/documents/{id}:
+ *   get:
+ *     tags:
+ *       - Documents
+ *     summary: Get a document by ID (access control applied)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Document object
+ */
 // GET /documents/:id - Get document by ID (with access control)
 router.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params
@@ -205,6 +265,24 @@ router.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/documents/{id}:
+ *   delete:
+ *     tags:
+ *       - Documents
+ *     summary: Delete a document
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Deletion successful
+ */
 // DELETE /documents/:id - Delete document
 router.delete('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params
@@ -227,6 +305,35 @@ router.delete('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/documents/{id}/share:
+ *   post:
+ *     tags:
+ *       - Documents
+ *     summary: Share a document with users
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *                 items: { type: string }
+ *               permission:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Document shared
+ */
 // POST /documents/:id/share - Share document with users
 router.post('/:id/share', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params

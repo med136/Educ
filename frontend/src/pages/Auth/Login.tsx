@@ -5,10 +5,12 @@ import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, MoonIcon, SunIcon 
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 import { useTheme } from '../../context/ThemeContext'
+import { useTranslation } from 'react-i18next'
 
 const Login: React.FC = () => {
   const { login, isLoading } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { t } = useTranslation()
   const isDark = theme === 'dark'
   const [formData, setFormData] = useState({
     email: '',
@@ -20,9 +22,9 @@ const Login: React.FC = () => {
     e.preventDefault()
     const result = await login(formData.email, formData.password)
     if (!result.success) {
-      toast.error(result.error || 'Erreur de connexion')
+      toast.error(result.error || t('auth.login.error'))
     } else {
-      toast.success('Connexion réussie!')
+      toast.success(t('auth.login.success'))
     }
   }
 
@@ -47,25 +49,24 @@ const Login: React.FC = () => {
           </div>
 
           <h1 className="text-3xl xl:text-4xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
-            Plateforme de collaboration
-            <span className="block text-indigo-300">moderne pour l'éducation</span>
+            {t('auth.login.title')}
+            <span className="block text-indigo-300">{t('auth.login.subtitle')}</span>
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400 max-w-md">
-            Centralisez vos documents, vos classes et vos échanges dans une interface claire et professionnelle,
-            pensée pour les établissements, enseignants et étudiants exigeants.
+            {t('auth.login.description')}
           </p>
 
           <div className="mt-8 grid grid-cols-3 gap-4 text-sm">
             <div className="rounded-xl border border-slate-700 bg-slate-900/40 px-4 py-3">
-              <p className="text-xs text-slate-400">Utilisateurs actifs</p>
+              <p className="text-xs text-slate-400">{t('auth.login.stats.active_users')}</p>
               <p className="mt-1 text-lg font-semibold text-slate-50">10 000+</p>
             </div>
             <div className="rounded-xl border border-slate-700 bg-slate-900/40 px-4 py-3">
-              <p className="text-xs text-slate-400">Documents gérés</p>
+              <p className="text-xs text-slate-400">{t('auth.login.stats.documents')}</p>
               <p className="mt-1 text-lg font-semibold text-slate-50">50 000+</p>
             </div>
             <div className="rounded-xl border border-slate-700 bg-slate-900/40 px-4 py-3">
-              <p className="text-xs text-slate-400">Taux de disponibilité</p>
+              <p className="text-xs text-slate-400">{t('auth.login.stats.uptime')}</p>
               <p className="mt-1 text-lg font-semibold text-slate-50">99,9%</p>
             </div>
           </div>
@@ -83,7 +84,7 @@ const Login: React.FC = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={isDark ? 'Désactiver le mode sombre' : 'Activer le mode sombre'}
+              aria-label={isDark ? t('auth.login.theme_dark') : t('auth.login.theme_light')}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
             >
               {isDark ? <SunIcon className="h-4 w-4" aria-hidden="true" /> : <MoonIcon className="h-4 w-4" aria-hidden="true" />}
@@ -92,16 +93,16 @@ const Login: React.FC = () => {
 
           <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_22px_70px_rgba(15,23,42,0.45)] border border-slate-100 dark:bg-slate-950/90 dark:border-slate-800 p-8">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Connexion</h2>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('auth.login.heading')}</h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Accédez à votre espace EduShare.
+                {t('auth.login.subheading')}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
-                  Adresse email
+                  {t('auth.login.email_label')}
                 </label>
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
@@ -113,7 +114,7 @@ const Login: React.FC = () => {
                     required
                     autoComplete="email"
                     className="input-field pl-10 py-2.5 bg-slate-50 border-slate-200 text-sm"
-                    placeholder="vous@etablissement.fr"
+                    placeholder={t('auth.login.email_placeholder')}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
@@ -122,7 +123,7 @@ const Login: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
-                  Mot de passe
+                  {t('auth.login.password_label')}
                 </label>
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
@@ -134,14 +135,14 @@ const Login: React.FC = () => {
                     required
                     autoComplete="current-password"
                     className="input-field pl-10 pr-10 py-2.5 bg-slate-50 border-slate-200 text-sm"
-                    placeholder="••••••••"
+                    placeholder={t('auth.login.password_placeholder')}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    aria-label={showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')}
                     className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
                   >
                     {showPassword ? <EyeSlashIcon className="h-5 w-5" aria-hidden="true" /> : <EyeIcon className="h-5 w-5" aria-hidden="true" />}
@@ -155,13 +156,13 @@ const Login: React.FC = () => {
                     type="checkbox"
                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   />
-                  <span>Se souvenir de moi</span>
+                  <span>{t('auth.login.remember_me')}</span>
                 </label>
                 <button
                   type="button"
                   className="font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
-                  Mot de passe oublié ?
+                  {t('auth.login.forgot_password')}
                 </button>
               </div>
 
@@ -175,21 +176,21 @@ const Login: React.FC = () => {
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                    Connexion...
+                    {t('auth.login.loading')}
                   </span>
                 ) : (
-                  'Se connecter'
+                  t('auth.login.button')
                 )}
               </motion.button>
             </form>
 
             <p className="mt-6 text-center text-xs text-slate-600 dark:text-slate-500">
-              Pas encore de compte ?{' '}
+              {t('auth.login.no_account')}{' '}
               <Link
                 to="/register"
                 className="font-medium text-indigo-600 hover:text-indigo-700"
               >
-                Créer un compte
+                {t('auth.login.create_account')}
               </Link>
             </p>
           </div>

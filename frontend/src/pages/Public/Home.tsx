@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  AcademicCapIcon,
   BookOpenIcon,
-  UsersIcon,
   SparklesIcon,
   ArrowRightIcon,
   ClockIcon,
@@ -68,12 +66,6 @@ interface Tag {
   }
 }
 
-interface Stats {
-  articles: number
-  users: number
-  classrooms: number
-}
-
 type ViewMode = 'grid' | 'list'
 type SortBy = 'recent' | 'popular' | 'trending'
 
@@ -83,7 +75,6 @@ const Home: React.FC = () => {
   const [allArticles, setAllArticles] = useState<Article[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [tags, setTags] = useState<Tag[]>([])
-  const [stats, setStats] = useState<Stats>({ articles: 0, users: 0, classrooms: 0 })
   const [loading, setLoading] = useState(true)
   
   // Filtres et recherche
@@ -106,16 +97,14 @@ const Home: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [articlesRes, statsRes, categoriesRes, tagsRes] = await Promise.all([
+      const [articlesRes, categoriesRes, tagsRes] = await Promise.all([
         api.get('/articles?status=PUBLISHED&limit=12'),
-        api.get('/stats/dashboard'),
         api.get('/article-meta/categories'),
         api.get('/article-meta/tags'),
       ])
       const articles = articlesRes.data.articles || articlesRes.data.data || []
       setFeaturedArticles(articles.slice(0, 3))
       setAllArticles(articles)
-      setStats(statsRes.data || { articles: 0, users: 0, classrooms: 0 })
       setCategories(categoriesRes.data?.data || categoriesRes.data || [])
       setTags(tagsRes.data?.data || tagsRes.data || [])
     } catch (error) {
@@ -191,144 +180,8 @@ const Home: React.FC = () => {
 
   const hasActiveFilters = searchQuery || selectedCategory || selectedTags.length > 0 || sortBy !== 'recent'
 
-  const features = [
-    {
-      icon: BookOpenIcon,
-      title: 'Articles de Qualité',
-      description:
-        'Accédez à des centaines d\'articles rédigés par des enseignants experts dans leur domaine.',
-      color: 'from-blue-500 to-cyan-500',
-    },
-    {
-      icon: UsersIcon,
-      title: 'Classes Virtuelles',
-      description:
-        'Rejoignez des classes organisées et collaborez avec vos camarades sur des projets communs.',
-      color: 'from-purple-500 to-pink-500',
-    },
-    {
-      icon: AcademicCapIcon,
-      title: 'Apprentissage Personnalisé',
-      description:
-        'Suivez votre progression et recevez des recommandations adaptées à votre niveau.',
-      color: 'from-amber-500 to-orange-500',
-    },
-    {
-      icon: SparklesIcon,
-      title: 'Contenu Interactif',
-      description:
-        'Profitez d\'exercices interactifs, de quiz et de supports multimédias pour mieux apprendre.',
-      color: 'from-green-500 to-emerald-500',
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 dark:from-blue-600/5 dark:to-purple-600/5" />
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-          <div className="text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium">
-              <SparklesIcon className="w-4 h-4" />
-              {t('home.hero_badge', 'Plateforme éducative nouvelle génération')}
-            </div>
-
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-                EduShare
-              </span>
-              <br />
-              <span className="text-gray-900 dark:text-white">
-                {t('home.hero_title', 'Apprendre ensemble')}
-              </span>
-            </h1>
-
-            <p className="max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-300">
-              {t('home.hero_desc', "Découvrez une nouvelle façon d'apprendre avec des cours de qualité, des classes virtuelles et une communauté d'apprenants passionnés.")}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/register"
-                className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-              >
-                Commencer gratuitement
-                <ArrowRightIcon className="inline-block w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                to="/articles"
-                className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700"
-              >
-                Explorer les articles
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto mt-12">
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  {stats.articles}+
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">Articles publiés</div>
-              </div>
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                  {stats.users}+
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">Utilisateurs actifs</div>
-              </div>
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                  {stats.classrooms}+
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">Classes disponibles</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('home.why_choose', 'Pourquoi choisir EduShare ?')}
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              {t('home.why_choose_desc', "Une plateforme complète conçue pour faciliter l'apprentissage et le partage de connaissances.")}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:scale-105"
-              >
-                <div
-                  className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${feature.color} mb-4 shadow-lg`}
-                >
-                  <feature.icon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Featured Articles Spotlight */}
       <section className="py-16 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
         <div className="absolute inset-0">
@@ -340,72 +193,87 @@ const Home: React.FC = () => {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-4">
               <FireIcon className="w-4 h-4 text-orange-400" />
-              À la une
+              {t('home.featured_articles')}
             </div>
             <h2 className="text-4xl font-bold text-white mb-4">
-              Articles vedettes
+              {t('home.featured_articles')}
             </h2>
             <p className="text-xl text-white/70">
-              Les articles les plus appréciés par notre communauté
+              {t('home.featured_articles_desc')}
             </p>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:auto-rows-[220px]">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden animate-pulse">
-                  <div className="h-48 bg-white/10" />
-                  <div className="p-6 space-y-3">
+                <div
+                  key={i}
+                  className={`relative rounded-2xl overflow-hidden bg-white/10 ring-1 ring-white/10 shadow-lg animate-pulse ${
+                    i === 0 ? 'md:col-span-2 md:row-span-2' : ''
+                  }`}
+                >
+                  <div className="absolute inset-0 bg-white/10" />
+                  <div className="absolute inset-x-0 bottom-0 p-6 space-y-3">
                     <div className="h-4 bg-white/10 rounded w-1/4" />
-                    <div className="h-6 bg-white/10 rounded" />
+                    <div className="h-7 bg-white/10 rounded w-4/5" />
+                    {i === 0 && <div className="h-4 bg-white/10 rounded w-3/5" />}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:auto-rows-[220px]">
               {featuredArticles.slice(0, 3).map((article, index) => (
                 <Link
                   key={article.id}
                   to={`/articles/${article.slug}`}
-                  className={`group relative bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden hover:bg-white/20 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                  className={`group relative overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10 shadow-lg transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 hover:-translate-y-1 hover:bg-white/15 hover:shadow-2xl ${
                     index === 0 ? 'md:col-span-2 md:row-span-2' : ''
                   }`}
                 >
-                  <div className={`relative overflow-hidden ${index === 0 ? 'h-80' : 'h-48'}`}>
+                  <div className="absolute inset-0">
                     {article.coverImage ? (
                       <img
                         src={article.coverImage}
                         alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                      <div className="h-full w-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
                         <BookOpenIcon className="w-16 h-16 text-white opacity-50" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    {index === 0 && (
-                      <div className="absolute top-4 left-4 flex items-center gap-2">
-                        <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-bold rounded-full flex items-center gap-1">
-                          <StarIconSolid className="w-4 h-4" />
-                          Top Article
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                    <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  </div>
+
+                  <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      {index === 0 ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                          <StarIconSolid className="h-4 w-4" />
+                          {t('home.top_article')}
                         </span>
-                      </div>
-                    )}
-                    
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full mb-2">
-                        {article.category?.name || 'Article'}
+                      ) : (
+                        <span />
+                      )}
+                      <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                        {article.category?.name || t('article.default')}
                       </span>
-                      <h3 className={`font-bold text-white group-hover:text-blue-200 transition-colors ${
-                        index === 0 ? 'text-2xl' : 'text-lg'
-                      }`}>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3
+                        className={`font-semibold tracking-tight text-white transition-colors group-hover:text-white ${
+                          index === 0 ? 'text-2xl sm:text-3xl' : 'text-lg sm:text-xl'
+                        }`}
+                      >
                         {article.title}
                       </h3>
                       {index === 0 && (
-                        <p className="text-white/70 mt-2 line-clamp-2">{article.excerpt}</p>
+                        <p className="text-sm sm:text-base text-white/80 leading-relaxed line-clamp-3 max-w-2xl">
+                          {article.excerpt}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -421,10 +289,10 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Explorer nos articles
+              {t('home.browse_title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Découvrez tous nos articles et utilisez les filtres pour trouver exactement ce que vous cherchez
+              {t('home.browse_desc')}
             </p>
           </div>
 
@@ -436,7 +304,7 @@ const Home: React.FC = () => {
                 <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher un article, un auteur..."
+                  placeholder={t('home.search_placeholder', 'Rechercher un article, un auteur...')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500"
@@ -462,7 +330,7 @@ const Home: React.FC = () => {
                   }`}
                 >
                   <FunnelIcon className="w-5 h-5" />
-                  Filtres
+                  {t('home.filters')}
                   {hasActiveFilters && (
                     <span className="w-2 h-2 bg-orange-500 rounded-full" />
                   )}
@@ -499,9 +367,9 @@ const Home: React.FC = () => {
                     onChange={(e) => setSortBy(e.target.value as SortBy)}
                     className="appearance-none px-4 py-3 pr-10 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
-                    <option value="recent">Plus récents</option>
-                    <option value="popular">Plus populaires</option>
-                    <option value="trending">Tendance</option>
+                    <option value="recent">{t('home.sort_recent')}</option>
+                    <option value="popular">{t('home.sort_popular')}</option>
+                    <option value="trending">{t('home.sort_trending')}</option>
                   </select>
                   <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
@@ -515,7 +383,7 @@ const Home: React.FC = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                     <BookOpenIcon className="w-4 h-4" />
-                    Catégories
+                    {t('home.categories')}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -526,7 +394,7 @@ const Home: React.FC = () => {
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                     >
-                      Toutes
+                      {t('home.all')}
                     </button>
                     {categories.map((category) => (
                       <button
@@ -551,7 +419,7 @@ const Home: React.FC = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                     <TagIcon className="w-4 h-4" />
-                    Tags
+                    {t('home.tags')}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {tags.slice(0, 15).map((tag) => (
@@ -584,7 +452,7 @@ const Home: React.FC = () => {
                     className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium"
                   >
                     <XMarkIcon className="w-4 h-4" />
-                    Effacer tous les filtres
+                    {t('home.clear_filters')}
                   </button>
                 )}
               </div>
@@ -594,8 +462,10 @@ const Home: React.FC = () => {
           {/* Results Count */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} trouvé{filteredArticles.length !== 1 ? 's' : ''}
-              {hasActiveFilters && ' avec les filtres actifs'}
+              {filteredArticles.length === 1
+                ? t('home.results_single')
+                : t('home.results_multiple', { count: filteredArticles.length })}
+              {hasActiveFilters && ` ${t('home.search_results')}`}
             </p>
           </div>
 
@@ -620,16 +490,16 @@ const Home: React.FC = () => {
             <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
               <MagnifyingGlassIcon className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Aucun article trouvé
+                {t('home.no_articles_found')}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Essayez de modifier vos critères de recherche ou de réinitialiser les filtres
+                {t('home.no_articles_desc')}
               </p>
               <button
                 onClick={clearFilters}
                 className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
               >
-                Réinitialiser les filtres
+                {t('home.reset_filters')}
               </button>
             </div>
           ) : viewMode === 'grid' ? (
@@ -654,7 +524,7 @@ const Home: React.FC = () => {
                       )}
                       <div className="absolute top-4 left-4">
                         <span className="px-3 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-gray-900 dark:text-white text-sm font-medium rounded-full">
-                          {article.category?.name || 'Article'}
+                          {article.category?.name || t('article.default')}
                         </span>
                       </div>
                       <button
@@ -747,7 +617,7 @@ const Home: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
-                          {article.category?.name || 'Article'}
+                          {article.category?.name || t('article.default')}
                         </span>
                         <button
                           onClick={() => toggleFavorite(article.id)}
@@ -813,7 +683,7 @@ const Home: React.FC = () => {
               to="/articles"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-gray-700"
             >
-              Voir tous les articles
+              {t('home.view_all_articles')}
               <ArrowRightIcon className="w-5 h-5" />
             </Link>
           </div>
@@ -821,51 +691,45 @@ const Home: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-white dark:bg-gray-900 overflow-hidden">
+      <section id="pour-qui" className="py-24 bg-white dark:bg-gray-900 overflow-hidden scroll-mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium mb-4">
               <ChatBubbleLeftRightIcon className="w-4 h-4" />
-              Témoignages
+              {t('home.testimonials')}
             </div>
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Ce que disent nos utilisateurs
+              {t('home.testimonials_title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Découvrez les retours d'expérience de notre communauté d'apprenants
+              {t('home.testimonials_desc')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                name: 'Sophie Martin',
-                role: 'Étudiante en informatique',
+                key: '1',
                 avatar: 'SM',
-                content: 'EduShare m\'a permis de trouver des ressources de qualité pour mes études. Les articles sont clairs et bien structurés !',
                 rating: 5,
                 gradient: 'from-pink-500 to-rose-500',
               },
               {
-                name: 'Thomas Dubois',
-                role: 'Enseignant de mathématiques',
+                key: '2',
                 avatar: 'TD',
-                content: 'Excellente plateforme pour partager mes cours avec mes élèves. L\'interface est intuitive et les fonctionnalités sont complètes.',
                 rating: 5,
                 gradient: 'from-blue-500 to-cyan-500',
               },
               {
-                name: 'Marie Leclerc',
-                role: 'Professeur de sciences',
+                key: '3',
                 avatar: 'ML',
-                content: 'Les classes virtuelles sont vraiment bien pensées. Mes étudiants peuvent accéder aux documents facilement et interagir entre eux.',
                 rating: 5,
                 gradient: 'from-amber-500 to-orange-500',
               },
             ].map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 relative"
+                className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 relative"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-bl-full" />
                 
@@ -874,8 +738,8 @@ const Home: React.FC = () => {
                     {testimonial.avatar}
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white">{t(`home.testimonials_list.${testimonial.key}.name`)}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t(`home.testimonials_list.${testimonial.key}.role`)}</p>
                   </div>
                 </div>
                 
@@ -886,7 +750,7 @@ const Home: React.FC = () => {
                 </div>
                 
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed italic">
-                  "{testimonial.content}"
+                  "{t(`home.testimonials_list.${testimonial.key}.content`) }"
                 </p>
               </div>
             ))}
@@ -895,7 +759,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 bg-gradient-to-r from-slate-100 to-blue-100 dark:from-gray-800 dark:to-gray-850">
+      <section className="py-16 bg-gradient-to-r from-slate-100 to-blue-100 dark:from-gray-800 dark:to-gray-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -904,31 +768,31 @@ const Home: React.FC = () => {
             <div className="relative text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-4">
                 <SparklesIcon className="w-4 h-4" />
-                Newsletter
+                {t('home.newsletter')}
               </div>
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Restez informé des nouveautés
+                {t('home.newsletter_title')}
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-lg mx-auto">
-                Inscrivez-vous à notre newsletter pour recevoir les derniers articles et actualités directement dans votre boîte mail.
+                {t('home.newsletter_desc')}
               </p>
               
               <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
                 <input
                   type="email"
-                  placeholder="Votre adresse email"
+                  placeholder={t('home.newsletter_placeholder')}
                   className="flex-1 px-6 py-4 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-500"
                 />
                 <button
                   type="submit"
                   className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 whitespace-nowrap"
                 >
-                  S'inscrire
+                  {t('home.newsletter_subscribe')}
                 </button>
               </form>
               
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
-                En vous inscrivant, vous acceptez de recevoir nos communications. Pas de spam, promis !
+                {t('home.newsletter_note')}
               </p>
             </div>
           </div>
@@ -939,17 +803,17 @@ const Home: React.FC = () => {
       <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Prêt à commencer votre apprentissage ?
+            {t('home.cta_title')}
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Rejoignez des milliers d'étudiants qui apprennent déjà sur EduShare
+            {t('home.cta_desc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
               className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              Créer un compte gratuit
+              {t('home.cta_create_account')}
             </Link>
             <Link
               to="/login"

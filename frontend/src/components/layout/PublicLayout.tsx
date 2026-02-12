@@ -1,17 +1,39 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { MoonIcon, SunIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../hooks/useAuth'
 import { useSettings } from '../../context/SettingsContext'
+import { useTranslation } from 'react-i18next'
+import LanguageSelector from '../common/LanguageSelector'
 
 const PublicLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const { isAuthenticated } = useAuth()
   const { settings } = useSettings()
+  const { t } = useTranslation()
 
   const isDark = theme === 'dark'
+
+  useEffect(() => {
+    if (!location.hash) return
+
+    const targetId = decodeURIComponent(location.hash.slice(1))
+
+    const tryScroll = (attempt: number) => {
+      const element = document.getElementById(targetId)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+
+      if (attempt >= 10) return
+      requestAnimationFrame(() => tryScroll(attempt + 1))
+    }
+
+    tryScroll(0)
+  }, [location.hash, location.pathname])
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
@@ -36,17 +58,15 @@ const PublicLayout: React.FC = () => {
                 (location.pathname === '/' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : '')
               }
             >
-              Accueil
+              {t('nav.home')}
             </Link>
-            <a href="#fonctionnalites" className="hover:text-indigo-600 dark:hover:text-indigo-400">
-              Fonctionnalités
-            </a>
-            <a href="#pour-qui" className="hover:text-indigo-600 dark:hover:text-indigo-400">
-              Pour qui ?
-            </a>
+            <Link to="/#pour-qui" className="hover:text-indigo-600 dark:hover:text-indigo-400">
+              {t('nav.for_who')}
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageSelector />
             <button
               type="button"
               onClick={toggleTheme}
@@ -88,10 +108,10 @@ const PublicLayout: React.FC = () => {
 
       <footer className="border-t border-slate-200/80 bg-white/80 dark:bg-slate-950/80 dark:border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:px-6">
-          <span>© {new Date().getFullYear()} {settings.general.siteName}. Tous droits réservés.</span>
+          <span>{t('footer.copyright', { year: new Date().getFullYear(), siteName: settings.general.siteName })}</span>
           <div className="flex gap-4">
-            <button className="hover:text-slate-700 dark:hover:text-slate-300">Mentions légales</button>
-            <button className="hover:text-slate-700 dark:hover:text-slate-300">Confidentialité</button>
+            <button className="hover:text-slate-700 dark:hover:text-slate-300">{t('footer.legal')}</button>
+            <button className="hover:text-slate-700 dark:hover:text-slate-300">{t('footer.privacy')}</button>
           </div>
         </div>
       </footer>

@@ -42,6 +42,26 @@ const uploadMiddleware = upload.single('file') as any
 router.use(authenticate)
 router.use(authorize('TEACHER', 'ADMIN'))
 
+/**
+ * @openapi
+ * /api/v1/media/assets:
+ *   get:
+ *     tags:
+ *       - Media
+ *     summary: List media assets for current user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Paginated list of media assets
+ */
 // GET /media/assets - list assets for current user
 router.get(
   '/assets',
@@ -79,6 +99,19 @@ router.get(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/media/assets/stats:
+ *   get:
+ *     tags:
+ *       - Media
+ *     summary: Get statistics for media assets
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Asset statistics
+ */
 // GET /media/assets/stats - get statistics for assets
 router.get(
   '/assets/stats',
@@ -113,6 +146,28 @@ router.get(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/media/assets:
+ *   post:
+ *     tags:
+ *       - Media
+ *     summary: Upload a media asset
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Asset uploaded
+ */
 // POST /media/assets - upload an asset
 router.post(
   '/assets',
@@ -152,6 +207,24 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/media/assets/{id}:
+ *   delete:
+ *     tags:
+ *       - Media
+ *     summary: Delete a media asset
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Asset deleted
+ */
 // DELETE /media/assets/:id - delete an asset
 router.delete(
   '/assets/:id',

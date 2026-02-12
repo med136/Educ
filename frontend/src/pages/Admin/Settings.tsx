@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { toast } from 'react-hot-toast'
 import api from '../../services/api'
 import {
@@ -12,6 +12,7 @@ import {
   type StorageSettings,
 } from '../../types/settings'
 import { useSettings } from '../../context/SettingsContext'
+import { useTheme } from '../../context/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import {
   Cog6ToothIcon,
@@ -39,6 +40,43 @@ const Settings: React.FC = () => {
   const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(defaultSettings.security)
   const [appearanceSettings, setAppearanceSettings] = useState<AppearanceSettings>(defaultSettings.appearance)
   const [storageSettings, setStorageSettings] = useState<StorageSettings>(defaultSettings.storage)
+  const { setTheme } = useTheme()
+  const themeInitialRef = useRef(true)
+
+  // Apply appearance preview (theme + colors) immediately when user changes values
+  useEffect(() => {
+    if (!appearanceSettings.theme) return
+
+    setTheme(appearanceSettings.theme)
+
+    // skip toast on initial load
+    if (themeInitialRef.current) {
+      themeInitialRef.current = false
+      return
+    }
+
+    // Notify user that theme was applied
+    toast.success(
+      t('settings.appearance.theme_applied', {
+        theme: appearanceSettings.theme,
+        defaultValue: `Thème appliqué : ${appearanceSettings.theme}`,
+      }),
+      { duration: 2000 }
+    )
+  }, [appearanceSettings.theme, setTheme, t])
+
+  useEffect(() => {
+    try {
+      if (appearanceSettings.primaryColor) {
+        document.documentElement.style.setProperty('--primary', appearanceSettings.primaryColor)
+      }
+      if (appearanceSettings.accentColor) {
+        document.documentElement.style.setProperty('--secondary', appearanceSettings.accentColor)
+      }
+    } catch (e) {
+      // ignore errors in SSR or restricted envs
+    }
+  }, [appearanceSettings.primaryColor, appearanceSettings.accentColor])
 
   const tabs = [
     { id: 'general' as TabType, name: t('settings.tabs.general'), icon: Cog6ToothIcon },

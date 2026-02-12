@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { useSettings } from './SettingsContext'
 
-export type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'auto'
 
 interface ThemeContextValue {
   theme: Theme
+  setTheme: (t: Theme) => void
   toggleTheme: () => void
 }
 
@@ -13,80 +13,64 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 const THEME_STORAGE_KEY = 'edushare-theme'
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { settings, refresh } = useSettings()
-  const [theme, setTheme] = useState<Theme>('light')
-
-  // Determine the effective theme based on settings
-  const getEffectiveTheme = (): Theme => {
-    const appearanceTheme = settings.appearance?.theme
-    if (appearanceTheme === 'light' || appearanceTheme === 'dark') {
-      return appearanceTheme
-    }
-    if (appearanceTheme === 'auto') {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      return prefersDark ? 'dark' : 'light'
-    }
-    // Fallback to stored preference or system preference
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
-    if (stored === 'light' || stored === 'dark') {
-      return stored
-    }
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    return prefersDark ? 'dark' : 'light'
-  }
+  const [theme, setThemeState] = useState<Theme>('auto')
 
   useEffect(() => {
-    const effectiveTheme = getEffectiveTheme()
-    setTheme(effectiveTheme)
-  }, [settings.appearance?.theme])
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
+    if (stored === 'light' || stored === 'dark' || stored === 'auto') {
+      setThemeState(stored)
+      return
+    }
+
+    // Default to system preference
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    setThemeState(prefersDark ? 'dark' : 'light')
+  }, [])
 
   useEffect(() => {
     const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+
+    const applyDark = () => {
+      if (theme === 'dark') return true
+      if (theme === 'light') return false
+      // auto -> follow system
+      return mq.matches
     }
+
+    const update = () => {
+      if (applyDark()) {
+        root.classList.add('dark')
+      } else {
+        root.classList.remove('dark')
+      }
+    }
+
+    update()
+
+    // if auto, listen to system changes
+    if (mq && mq.addEventListener) {
+      const handler = () => {
+        if (theme === 'auto') update()
+      }
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    }
+
     window.localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
 
-  const toggleTheme = async () => {
-    const currentTheme = settings.appearance?.theme
-    let newTheme: 'light' | 'dark' | 'auto'
+  const setTheme = (t: Theme) => {
+    setThemeState(t)
+  }
 
-    if (currentTheme === 'auto') {
-      newTheme = 'light'
-    } else if (currentTheme === 'light') {
-      newTheme = 'dark'
-    } else {
-      newTheme = 'auto'
-    }
-
-    // Update settings via API
-    try {
-      const response = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          appearance: {
-            ...settings.appearance,
-            theme: newTheme,
-          },
-        }),
-      })
-
-      if (response.ok) {
-        await refresh()
-      }
-    } catch (error) {
-      console.error('Failed to update theme setting:', error)
-    }
+  const toggleTheme = () => {
+    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'))
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   )

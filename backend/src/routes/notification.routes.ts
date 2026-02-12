@@ -8,6 +8,19 @@ const router = Router()
 // All notification routes require authentication
 router.use(authenticate)
 
+/**
+ * @openapi
+ * /api/v1/notifications:
+ *   get:
+ *     tags:
+ *       - Notifications
+ *     summary: Get current user's notifications
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of notifications
+ */
 // GET /notifications - Get current user's notifications (optionally unread only)
 router.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { page = '1', limit = '10', unread } = req.query
@@ -42,6 +55,24 @@ router.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/notifications/{id}/read:
+ *   post:
+ *     tags:
+ *       - Notifications
+ *     summary: Mark a notification as read
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Marked as read
+ */
 // POST /notifications/:id/read - Mark a notification as read
 router.post('/:id/read', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params
@@ -66,6 +97,19 @@ router.post('/:id/read', asyncHandler(async (req: AuthRequest, res: Response) =>
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/notifications/mark-all-read:
+ *   post:
+ *     tags:
+ *       - Notifications
+ *     summary: Mark all notifications as read
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All marked as read
+ */
 // POST /notifications/mark-all-read - Mark all notifications as read for current user
 router.post('/mark-all-read', asyncHandler(async (req: AuthRequest, res: Response) => {
   const result = await prisma.notification.updateMany({

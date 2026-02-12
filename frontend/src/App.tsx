@@ -19,6 +19,7 @@ const Documents = React.lazy(() => import('./pages/Documents/Documents'))
 const Profile = React.lazy(() => import('./pages/Profile/Profile'))
 const Admin = React.lazy(() => import('./pages/Admin/Admin'))
 const Messages = React.lazy(() => import('./pages/Messages/Messages'))
+const MenusPage = React.lazy(() => import('./pages/Admin/Menus'))
 const UsersAdmin = React.lazy(() => import('./pages/Admin/Users'))
 const MyArticles = React.lazy(() => import('./pages/Articles/MyArticles'))
 const ArticlesDashboardList = React.lazy(() => import('./pages/Articles/ArticlesDashboardList'))
@@ -108,18 +109,33 @@ function App() {
           <Route path="documents" element={<Documents />} />
           <Route path="messages" element={<Messages />} />
           <Route path="articles" element={<ArticlesDashboardList />} />
-          <Route path="articles/new" element={<MyArticles />} />
+          <Route
+            path="articles/new"
+            element={
+              <ProtectedRoute roles={['TEACHER', 'ADMIN']}>
+                <MyArticles />
+              </ProtectedRoute>
+            }
+          />
           <Route path="articles/gallery" element={
             <ProtectedRoute roles={['TEACHER', 'ADMIN']}>
               <ArticlesGallery />
             </ProtectedRoute>
           } />
-          <Route path="articles/:slug/edit" element={<MyArticles />} />
+          <Route
+            path="articles/:slug/edit"
+            element={
+              <ProtectedRoute roles={['TEACHER', 'ADMIN']}>
+                <MyArticles />
+              </ProtectedRoute>
+            }
+          />
           <Route path="users" element={
             <ProtectedRoute roles={['ADMIN']}>
               <UsersAdmin />
             </ProtectedRoute>
           } />
+           <Route path="menus" element={<MenusPage />} />
           <Route path="comments-moderation" element={
             <ProtectedRoute roles={['ADMIN']}>
               <ArticleCommentsModeration />

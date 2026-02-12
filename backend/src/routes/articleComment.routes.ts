@@ -10,6 +10,22 @@ import { getSettings } from '../utils/settings'
 
 const router = Router()
 
+/**
+ * @openapi
+ * /api/v1/article-comments:
+ *   get:
+ *     tags:
+ *       - Comments
+ *     summary: Get approved comments for an article (public)
+ *     parameters:
+ *       - in: query
+ *         name: articleId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: List of comments
+ */
 // GET /article-comments?articleId=xxx - Get approved comments for an article (public)
 router.get(
   '/',
@@ -59,6 +75,19 @@ router.get(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-comments/pending:
+ *   get:
+ *     tags:
+ *       - Comments
+ *     summary: Get pending comments (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Pending comments
+ */
 // GET /article-comments/pending - Get pending comments (admin only)
 router.get(
   '/pending',
@@ -103,6 +132,19 @@ router.get(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-comments/all:
+ *   get:
+ *     tags:
+ *       - Comments
+ *     summary: Get all comments with filters (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All comments
+ */
 // GET /article-comments/all - Get all comments with filters (admin only)
 router.get(
   '/all',
@@ -182,6 +224,27 @@ router.get(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-comments:
+ *   post:
+ *     tags:
+ *       - Comments
+ *     summary: Create a new comment (public, pending approval)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               articleId: { type: string }
+ *               content: { type: string }
+ *               authorName: { type: string }
+ *     responses:
+ *       201:
+ *         description: Comment created
+ */
 // POST /article-comments - Create a new comment (public, pending approval)
 router.post(
   '/',
@@ -288,6 +351,24 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-comments/{id}/approve:
+ *   put:
+ *     tags:
+ *       - Comments
+ *     summary: Approve a comment (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Comment approved
+ */
 // PUT /article-comments/:id/approve - Approve a comment (admin only)
 router.put(
   '/:id/approve',
@@ -321,6 +402,24 @@ router.put(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-comments/{id}/reject:
+ *   put:
+ *     tags:
+ *       - Comments
+ *     summary: Reject a comment (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Comment rejected
+ */
 // PUT /article-comments/:id/reject - Reject a comment (admin only)
 router.put(
   '/:id/reject',
@@ -354,6 +453,24 @@ router.put(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-comments/{id}:
+ *   delete:
+ *     tags:
+ *       - Comments
+ *     summary: Delete a comment (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Comment deleted
+ */
 // DELETE /article-comments/:id - Delete a comment (admin only)
 router.delete(
   '/:id',

@@ -111,7 +111,7 @@ const ArticlesGallery: React.FC = () => {
 
     const file = files[0]
     if (!file.type.startsWith('image/')) {
-      toast.error('Seules les images sont acceptées')
+      toast.error(t('articles.new.upload_image_only'))
       return
     }
 
@@ -125,7 +125,7 @@ const ArticlesGallery: React.FC = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      toast.success('Image uploadée avec succès')
+      toast.success(t('articles.new.image_uploaded'))
       void fetchAssets(1)
       void fetchStats()
       setSelectedIds(new Set())
@@ -137,11 +137,11 @@ const ArticlesGallery: React.FC = () => {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette image ?')) return
+    if (!confirm(t('articles.new.confirm_delete_image'))) return
 
     try {
       await api.delete(`/media/assets/${id}`)
-      toast.success('Image supprimée')
+      toast.success(t('articles.new.image_deleted'))
       void fetchAssets(page)
       void fetchStats()
       setSelectedIds((prev) => {
@@ -156,13 +156,13 @@ const ArticlesGallery: React.FC = () => {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return
-    if (!confirm(`Supprimer ${selectedIds.size} image(s) ?`)) return
+    if (!confirm(t('articles.new.bulk_delete_confirm', { count: selectedIds.size }))) return
 
     const promises = Array.from(selectedIds).map((id) => api.delete(`/media/assets/${id}`))
 
     try {
       await Promise.all(promises)
-      toast.success(`${selectedIds.size} image(s) supprimée(s)`)
+      toast.success(t('articles.new.bulk_deleted', { count: selectedIds.size }))
       void fetchAssets(page)
       void fetchStats()
       setSelectedIds(new Set())
@@ -174,9 +174,9 @@ const ArticlesGallery: React.FC = () => {
   const handleCopyUrl = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url)
-      toast.success('URL copiée')
+      toast.success(t('articles.new.url_copied'))
     } catch {
-      toast.error('Impossible de copier')
+      toast.error(t('articles.new.copy_error'))
     }
   }
 
@@ -304,7 +304,7 @@ const ArticlesGallery: React.FC = () => {
             className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 dark:border-red-900/30 dark:bg-red-950/20 dark:hover:bg-red-950/30"
           >
             <TrashIcon className="h-4 w-4" />
-            Supprimer ({selectedIds.size})
+            {t('articles.new.remove_count', { count: selectedIds.size })}
           </button>
         )}
 
@@ -346,10 +346,10 @@ const ArticlesGallery: React.FC = () => {
       >
         <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500" />
         <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-          Glissez-déposez une image ici
+          {t('articles.new.drag_drop_image_here')}
         </p>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          ou cliquez sur le bouton "Uploader" ci-dessus
+          {t('articles.new.or_click_upload_button')}
         </p>
       </div>
 
@@ -467,7 +467,7 @@ const ArticlesGallery: React.FC = () => {
                       type="button"
                       onClick={() => void handleDelete(asset.id)}
                       className="flex-1 rounded-lg border border-red-200 px-2 py-1.5 text-[11px] font-medium text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-950/20"
-                      title="Supprimer"
+                      title={t('articles.new.remove')}
                     >
                       <TrashIcon className="mx-auto h-3.5 w-3.5" />
                     </button>

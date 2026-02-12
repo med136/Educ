@@ -33,7 +33,7 @@ interface Pagination {
 }
 
 const ArticlesList: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation()
   const [articles, setArticles] = useState<ArticleListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -41,6 +41,15 @@ const ArticlesList: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const page = parseInt(searchParams.get('page') || '1', 10)
+
+  const formatDate = (dateValue?: string | null) => {
+    if (!dateValue) return ''
+    try {
+      return new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(dateValue))
+    } catch {
+      return new Date(dateValue).toLocaleDateString()
+    }
+  }
 
   const fetchArticles = async (pageParam: number) => {
     try {
@@ -59,7 +68,7 @@ const ArticlesList: React.FC = () => {
         setPagination(response.data.pagination)
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erreur lors du chargement des articles')
+      setError(err.response?.data?.message || t('articles.load_error', 'Erreur lors du chargement des articles'))
     } finally {
       setLoading(false)
     }
@@ -92,14 +101,16 @@ const ArticlesList: React.FC = () => {
       <section className="bg-slate-50 dark:bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
           {loading && (
-            <p className="text-sm text-slate-500 dark:text-slate-400">Chargement des articles...</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {t('articles.loading', 'Chargement des articles...')}
+            </p>
           )}
           {error && !loading && (
             <p className="text-sm text-red-500">{error}</p>
           )}
           {!loading && !error && articles.length === 0 && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Aucun article publié pour le moment.
+              {t('articles.empty', 'Aucun article publié pour le moment.')}
             </p>
           )}
 
@@ -124,7 +135,7 @@ const ArticlesList: React.FC = () => {
                     </Link>
                   )}
                   <p className="text-[11px] uppercase tracking-wide text-indigo-500 mb-1">
-                    {article.category?.name || 'Ressource'}
+                    {article.category?.name || t('article.resource', 'Ressource')}
                   </p>
                   <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-50 line-clamp-2">
                     <Link to={`/articles/${article.slug}`} className="hover:text-indigo-600 dark:hover:text-indigo-400">
@@ -140,12 +151,10 @@ const ArticlesList: React.FC = () => {
                     <span>
                       {article.author
                         ? `${article.author.firstName} ${article.author.lastName}`
-                        : 'Auteur inconnu'}
+                        : t('article.unknown_author', 'Auteur inconnu')}
                     </span>
                     <span>
-                      {article.publishedAt
-                        ? new Date(article.publishedAt).toLocaleDateString('fr-FR')
-                        : new Date(article.createdAt).toLocaleDateString('fr-FR')}
+                      {formatDate(article.publishedAt || article.createdAt)}
                     </span>
                   </div>
                 </article>
@@ -156,7 +165,11 @@ const ArticlesList: React.FC = () => {
           {pagination && pagination.pages > 1 && (
             <div className="mt-6 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>
-                Page {pagination.page} / {pagination.pages}
+                {t('articles.page_of', {
+                  page: pagination.page,
+                  pages: pagination.pages,
+                  defaultValue: 'Page {{page}} / {{pages}}',
+                })}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -165,7 +178,7 @@ const ArticlesList: React.FC = () => {
                   disabled={pagination.page <= 1}
                   className="px-3 py-1.5 rounded-full border border-slate-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
                 >
-                  Précédent
+                  {t('articles.prev', 'Précédent')}
                 </button>
                 <button
                   type="button"
@@ -173,7 +186,7 @@ const ArticlesList: React.FC = () => {
                   disabled={pagination.page >= pagination.pages}
                   className="px-3 py-1.5 rounded-full border border-slate-200 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
                 >
-                  Suivant
+                  {t('articles.next', 'Suivant')}
                 </button>
               </div>
             </div>

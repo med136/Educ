@@ -49,7 +49,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     } catch (error) {
       console.error('Erreur lors du chargement des paramètres', error)
-      setSettings(toPublic(defaultSettings))
+      const fallback = toPublic(defaultSettings)
+      setSettings(fallback)
+      try {
+        const stored = localStorage.getItem('language')
+        const nav = typeof navigator !== 'undefined' && navigator.language ? navigator.language.split('-')[0] : null
+        const lang = stored || nav || fallback.general.language || 'ar'
+        if (i18n.language !== lang) {
+          void i18n.changeLanguage(lang)
+        }
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+      } catch (e) {
+        // ignore localStorage/navigator errors in SSR or strict environments
+      }
     } finally {
       setLoading(false)
     }

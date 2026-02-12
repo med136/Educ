@@ -31,6 +31,26 @@ router.get('/tags', asyncHandler(async (_req, res: Response) => {
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/article-meta/categories:
+ *   post:
+ *     tags:
+ *       - Article Meta
+ *     summary: Create a category (TEACHER, ADMIN)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *     responses:
+ *       201:
+ *         description: Category created
+ */
 // Création simple d'une catégorie (enseignants / admins)
 router.post(
   '/categories',
@@ -72,6 +92,26 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/article-meta/tags:
+ *   post:
+ *     tags:
+ *       - Article Meta
+ *     summary: Create a tag (TEACHER, ADMIN)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *     responses:
+ *       201:
+ *         description: Tag created
+ */
 // Création simple d'un tag (enseignants / admins)
 router.post(
   '/tags',

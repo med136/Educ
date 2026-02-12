@@ -16,6 +16,19 @@ const generateClassCode = (): string => {
   return uuidv4().substring(0, 8).toUpperCase()
 }
 
+/**
+ * @openapi
+ * /api/v1/classrooms:
+ *   get:
+ *     tags:
+ *       - Classrooms
+ *     summary: Get user's classrooms
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of classrooms
+ */
 // GET /classrooms - Get user's classrooms
 router.get('/', asyncHandler(async (req: AuthRequest, res: Response) => {
   const classrooms = await prisma.classroom.findMany({
@@ -94,6 +107,24 @@ router.post(
   })
 )
 
+/**
+ * @openapi
+ * /api/v1/classrooms/{id}:
+ *   get:
+ *     tags:
+ *       - Classrooms
+ *     summary: Get classroom by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Classroom object
+ */
 // GET /classrooms/:id - Get classroom by ID
 router.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params
@@ -135,6 +166,26 @@ router.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/classrooms/join:
+ *   post:
+ *     tags:
+ *       - Classrooms
+ *     summary: Join a classroom by code
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               code: { type: string }
+ *     responses:
+ *       200:
+ *         description: Joined classroom
+ */
 // POST /classrooms/join - Join a classroom by code
 router.post(
   '/join',

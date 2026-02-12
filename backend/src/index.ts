@@ -24,6 +24,7 @@ import articleCommentRoutes from './routes/articleComment.routes'
 import mediaRoutes from './routes/media.routes'
 import statsRoutes from './routes/stats.routes'
 import settingsRoutes from './routes/settings.routes'
+import menuRoutes from './routes/menu.routes'
 import logger from './utils/logger'
 import { register, metricsEnabled } from './utils/metrics'
 
@@ -112,6 +113,7 @@ app.use('/api/v1/media', mediaRoutes)
 app.use('/api/v1/stats', statsRoutes)
 app.use('/api/v1/settings', settingsRoutes)
 app.use('/api/v1/notifications', notificationRoutes)
+app.use('/api/v1/menus', menuRoutes)
 
 // Setup Socket.io
 setupSocket(io)

@@ -10,6 +10,17 @@ import {
 
 const router = Router()
 
+/**
+ * @openapi
+ * /api/v1/settings:
+ *   get:
+ *     tags:
+ *       - Settings
+ *     summary: Get public sanitized settings for frontend
+ *     responses:
+ *       200:
+ *         description: Public settings
+ */
 // GET /settings - Public, sanitized settings for frontend
 router.get('/', asyncHandler(async (_req, res) => {
   const settings = await prisma.appSetting.findUnique({ where: { id: SETTINGS_ID } })

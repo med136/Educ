@@ -145,6 +145,30 @@ const notifyArticlePublication = async (articleId: string): Promise<void> => {
   )
 }
 
+/**
+ * @openapi
+ * /api/v1/articles:
+ *   get:
+ *     tags:
+ *       - Articles
+ *     summary: List articles with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *       - in: query
+ *         name: visibility
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Paginated list of articles
+ */
 // GET /articles - List articles with filters and pagination
 router.get('/', maybeAuthenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
   const { page = '1', limit = '10', status, visibility, categoryId, tagId, authorId, mine, search, classroomId } = req.query
@@ -287,6 +311,22 @@ router.get('/', maybeAuthenticate, asyncHandler(async (req: AuthRequest, res: Re
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/articles/{slug}:
+ *   get:
+ *     tags:
+ *       - Articles
+ *     summary: Get a single article by slug
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Article object
+ */
 // GET /articles/:slug - Get a single article by slug
 router.get('/:slug', maybeAuthenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
   const { slug } = req.params
@@ -490,6 +530,24 @@ router.put('/:id', authenticate, authorize('TEACHER', 'ADMIN'), asyncHandler(asy
   })
 }))
 
+/**
+ * @openapi
+ * /api/v1/articles/{id}:
+ *   delete:
+ *     tags:
+ *       - Articles
+ *     summary: Delete an article (author or admin)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Deletion successful
+ */
 // DELETE /articles/:id - Delete article (author or admin)
 router.delete('/:id', authenticate, authorize('TEACHER', 'ADMIN'), asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params

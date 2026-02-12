@@ -404,3 +404,55 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
 }
+
+// Models for dynamic menus managed from the backend
+model Menu {
+  id        String      @id @default(cuid())
+  slug      String      @unique
+  title     String
+  published Boolean     @default(false)
+  items     MenuItem[]
+  metadata  Json?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model MenuItem {
+  id          String        @id @default(cuid())
+  menu        Menu          @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  menuId      String
+  parentId    String?
+  parent      MenuItem?     @relation("MenuItemChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children    MenuItem[]    @relation("MenuItemChildren")
+  label       String
+  url         String?
+  type        MenuItemType  @default(LINK)
+  order       Int           @default(0)
+  visible     Boolean       @default(true)
+  targetBlank Boolean       @default(false)
+  metadata    Json?
+  i18n        MenuItemI18n[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([menuId])
+  @@index([parentId])
+  @@index([order])
+}
+
+model MenuItemI18n {
+  id         String    @id @default(cuid())
+  menuItem   MenuItem  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  menuItemId String
+  lang       String
+  label      String
+  description String?
+
+  @@unique([menuItemId, lang])
+}
+
+enum MenuItemType {
+  LINK
+  ROUTE
+  ACTION
+}
