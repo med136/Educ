@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Installer les dépendances
-RUN npm ci --only=production
+RUN npm ci
 
 # Générer le client Prisma
 RUN npx prisma generate
@@ -18,6 +18,7 @@ COPY . .
 
 # Build TypeScript
 RUN npm run build
+RUN npm prune --omit=dev
 
 # Étape 2: Production
 FROM node:18-alpine AS production
