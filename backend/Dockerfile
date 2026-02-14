@@ -67,3 +67,6 @@ EXPOSE 3000
 
 # Commande de développement
 CMD ["npm", "run", "dev"]
+
+# Stage final par défaut pour les plateformes qui ne précisent pas --target
+FROM production AS release
