@@ -38,6 +38,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 
+# Créer le dossier de logs avec les bons droits pour l'utilisateur runtime
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app
+
 # Basculer vers l'utilisateur non-root
 USER nodejs
 
