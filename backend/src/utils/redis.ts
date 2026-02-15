@@ -3,11 +3,27 @@
 const Redis = require('ioredis')
 import logger from './logger'
 
-const url = process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+const url = process.env.REDIS_URL?.trim()
 
-const redis = new Redis(url)
+let redis: any = null
 
-redis.on('connect', () => logger.info('Redis connecté'))
-redis.on('error', (err: unknown) => logger.error('Erreur Redis:', { error: err }))
+if (url) {
+  redis = new Redis(url, {
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: 1,
+    retryStrategy: (times: number) => {
+      if (times > 5) {
+        logger.error('Redis unavailable after multiple retries, cache disabled')
+        return null
+      }
+      return Math.min(times * 500, 3000)
+    },
+  })
+
+  redis.on('connect', () => logger.info('Redis connected'))
+  redis.on('error', (err: unknown) => logger.error('Redis error:', { error: err }))
+} else {
+  logger.warn('REDIS_URL is not set, Redis cache disabled')
+}
 
 export default redis

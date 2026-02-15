@@ -5,6 +5,7 @@ const MENU_TTL = 60 * 5 // 5 minutes
 const menuKey = (slug: string, lang?: string) => `menu:${slug}:${lang || 'default'}`
 
 export const getCachedMenu = async (slug: string, lang?: string) => {
+  if (!redis) return null
   try {
     const key = menuKey(slug, lang)
     const raw = await redis.get(key)
@@ -16,6 +17,7 @@ export const getCachedMenu = async (slug: string, lang?: string) => {
 }
 
 export const setCachedMenu = async (slug: string, lang: string | undefined, data: unknown) => {
+  if (!redis) return
   try {
     const key = menuKey(slug, lang)
     await redis.set(key, JSON.stringify(data), 'EX', MENU_TTL)
@@ -25,6 +27,7 @@ export const setCachedMenu = async (slug: string, lang: string | undefined, data
 }
 
 export const invalidateMenuCache = async (slug: string) => {
+  if (!redis) return
   try {
     const pattern = `menu:${slug}:*`
     const keys = await redis.keys(pattern)
