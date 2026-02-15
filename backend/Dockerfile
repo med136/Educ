@@ -1,5 +1,5 @@
 # Étape 1: Build
-FROM node:18-alpine AS builder
+FROM node:18-bullseye-slim AS builder
 
 WORKDIR /app
 
@@ -21,16 +21,18 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 # Étape 2: Production
-FROM node:18-alpine AS production
+FROM node:18-bullseye-slim AS production
 
 WORKDIR /app
 
 # Installer les outils nécessaires
-RUN apk add --no-cache curl
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Créer un utilisateur non-root
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -m nodejs
 
 # Copier depuis le builder
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -51,7 +53,7 @@ EXPOSE 3000
 CMD ["npm", "start"]
 
 # Étape 3: Development
-FROM node:18-alpine AS development
+FROM node:18-bullseye-slim AS development
 
 WORKDIR /app
 
